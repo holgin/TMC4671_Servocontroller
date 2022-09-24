@@ -49,8 +49,6 @@ extern "C" {
 
 /* USER CODE END EM */
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -97,6 +95,8 @@ void Error_Handler(void);
 #define STO2_in_GPIO_Port GPIOB
 #define EM_BRAKE_Pin GPIO_PIN_11
 #define EM_BRAKE_GPIO_Port GPIOB
+#define SPI2_NSS_Pin GPIO_PIN_12
+#define SPI2_NSS_GPIO_Port GPIOB
 #define ENC2_SELECT_Pin GPIO_PIN_6
 #define ENC2_SELECT_GPIO_Port GPIOC
 #define FAULT_LED_Pin GPIO_PIN_7

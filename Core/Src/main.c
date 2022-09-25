@@ -127,13 +127,22 @@ int main(void)
   int32_t chipInfo = 0;
   int32_t polePairs = 0;
 
+
+  //info about what to input can be found in TMC4671_register.h
   while (1)
   {
 	tmc4671_writeInt(0, TMC4671_CHIPINFO_ADDR, 0);
 	chipInfo = tmc4671_readInt(0, TMC4671_CHIPINFO_DATA);
 
-	tmc4671_setPolePairs(0, 7);
-	polePairs = tmc4671_getPolePairs(0);
+	//motor config
+	tmc4671_setMotorType(0, TMC4671_THREE_PHASE_BLDC); //BLDC
+	tmc4671_setPolePairs(0, 4);
+	tmc4671_SimpleABNEncoderInit(1, 8192, 1000, 1000);
+
+	//set PI constants
+	tmc4671_setTorqueFluxPI(0, 0, 0);
+	tmc4671_setVelocityPI(0, 0, 0);
+	tmc4671_setPositionPI(0, 0, 0);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

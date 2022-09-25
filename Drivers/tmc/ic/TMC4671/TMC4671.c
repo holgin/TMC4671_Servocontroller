@@ -568,3 +568,23 @@ int32_t tmc4671_readFieldWithDependency(uint8_t motor, uint8_t reg, uint8_t depe
 	tmc4671_writeInt(motor, dependsReg, lastDependsValue);
 	return value;
 }
+
+int32_t tmc4671_SimpleABNEncoderInit(uint32_t encNumber, uint32_t ABN_PPR, uint32_t ABN_count, ABN_phi_offset)
+{
+	if (encNumber == 1)	{
+		tmc4671_writeInt(TMC4671_ABN_DECODER_PPR, ABN_PPR);
+		tmc4671_writeInt(TMC4671_ABN_DECODER_COUNT, ABN_count);
+		tmc4671_writeInt(TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, ABN_phi_offset);
+		return 1;
+
+	} else if (encNumber == 2) {
+		tmc4671_writeInt(TMC4671_ABN_2_DECODER_PPR, ABN_PPR);
+		tmc4671_writeInt(TMC4671_ABN_2_DECODER_COUNT, ABN_count);
+		tmc4671_writeInt(TMC4671_ABN_2_DECODER_PHI_E_PHI_M_OFFSET, ABN_phi_offset);
+		return 1;
+
+	} else {
+		return 0;
+		}
+}
+}

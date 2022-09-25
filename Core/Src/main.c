@@ -139,6 +139,7 @@ int main(void)
 	tmc4671_setPolePairs(0, 4);
 	tmc4671_SimpleABNEncoderInit(1, 8192, 1000, 1000);
 
+
 	//set PI constants
 	tmc4671_setTorqueFluxPI(0, 0, 0);
 	tmc4671_setVelocityPI(0, 0, 0);

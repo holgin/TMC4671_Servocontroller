@@ -28,7 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "tmc/ic/TMC4671/TMC4671.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,9 +123,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  int32_t chipInfo = 0;
+  int32_t polePairs = 0;
+
   while (1)
   {
+	tmc4671_writeInt(0, TMC4671_CHIPINFO_ADDR, 0);
+	chipInfo = tmc4671_readInt(0, TMC4671_CHIPINFO_DATA);
 
+	tmc4671_setPolePairs(0, 7);
+	polePairs = tmc4671_getPolePairs(0);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

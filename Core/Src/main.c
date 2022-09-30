@@ -162,7 +162,7 @@ int main(void)
 
   // ABN encoder settings
   tmc4671_writeInt(0, TMC4671_ABN_DECODER_MODE, 0x00000000);
-  tmc4671_writeInt(0, TMC4671_ABN_DECODER_PPR, 0x00002000);				//8192 ppr
+  tmc4671_writeInt(0, TMC4671_ABN_DECODER_PPR, 0x00002000);					//8192 ppr
   tmc4671_writeInt(0, TMC4671_ABN_DECODER_COUNT, 0x00001CA8);
   tmc4671_writeInt(0, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0x000003E8);
 
@@ -173,13 +173,29 @@ int main(void)
   //tmc4671_writeInt(0, TMC4671_PID_TORQUE_P_TORQUE_I, 0x01000100);
   //tmc4671_writeInt(0, TMC4671_PID_FLUX_P_FLUX_I, 0x01000100);
   tmc4671_setTorqueFluxPI(0, 750, 2);
+  tmc4671_setVelocityPI(0, 8000, 2000);
+  tmc4671_setPositionPI(0,  80, 60);
+
+  //experimental PI settings
 
   // ===== ABN encoder test drive =====
 
+  //Open loop test drive
+  tmc4671_writeInt(0, TMC4671_OPENLOOP_MODE, 0x00000000);
+  tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);			//open loop velocity mode
+  tmc4671_writeInt(0, TMC4671_OPENLOOP_ACCELERATION, 0x0000003C); 			//60
+  tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 40);				//rpms
+  tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000002);					//config for open loop
+  tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 4500);								//value for Parker servomotors
+  HAL_Delay(3000);															//spin the motor
+  tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 0);					//set 0 rpms
+  HAL_Delay(3000);															//wait for motor to stop
+  tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 0);								//disable open loop flux
+
   // Init encoder (mode 0)
-  tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);
-  tmc4671_writeInt(0, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0x00000000);
-  tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000001);
+  tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);			//open loop velocity mode
+  tmc4671_writeInt(0, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0x00000000);	//reset the offset
+  tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000001);					//phi_e_ext - open loop
   tmc4671_writeInt(0, TMC4671_PHI_E_EXT, 0x00000000);
   tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 5200);
   HAL_Delay(2000);
@@ -188,26 +204,55 @@ int main(void)
   tmc4671_writeInt(0, TMC4671_ABN_DECODER_COUNT, 0x00000000);
 
   // Feedback selection
-  tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000003);
+  tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000003);					//phi_e_abn - use ABN encoder for electrical phase
   tmc4671_writeInt(0, TMC4671_VELOCITY_SELECTION, 0x00000009);
 
   // Switch to torque mode
   tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000001);
 
   // Rotate right
-  tmc4671_setTargetTorque_mA(0, 1, 2000); //clarify meaning of the middle variable
+  tmc4671_setTargetTorque_mA(0, 256, 2000); 									//clarify meaning of the middle variable
   //tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0x03E80000);
   HAL_Delay(5000);
   HAL_GPIO_WritePin(GPIOC, FAULT_LED_Pin, GPIO_PIN_RESET);
 
   // Rotate left
-  tmc4671_setTargetTorque_mA(0, 1, -2000); //clarify meaning of the middle variable
+  tmc4671_setTargetTorque_mA(0, 256, -2000); 									//clarify meaning of the middle variable
   //tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0xFC180000);
   HAL_Delay(5000);
   HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_RESET);
 
   // Stop
   tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0x00000000);
+
+  //reset encoder position
+  tmc4671_setActualPosition(0, 0);
+  HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOC, FAULT_LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_SET);
+  //start new testing procedure
+
+  //velocity mode test drive - crude speed ramp - TO BE TESTED
+  tmc4671_setTorqueFluxLimit_mA(0, 256, 80*141);							//8A * sqrt(2)
+  tmc4671_writeInt(0, TMC4671_VELOCITY_SELECTION, 0x00000009);				//mechanical velocity selection, standard mode
+  tmc4671_setTargetVelocity(0, 100);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 250);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 500);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 750);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 1000);
+  HAL_Delay(5000);
+  tmc4671_setTargetVelocity(0, 750);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 500);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 250);
+  HAL_Delay(200);
+  tmc4671_setTargetVelocity(0, 0);
+  HAL_Delay(200);
 
   //================================================================================
   //Prototype motor init and movement STOP

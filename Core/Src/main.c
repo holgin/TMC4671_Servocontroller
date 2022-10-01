@@ -29,6 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "tmc/ic/TMC4671/TMC4671.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -102,6 +103,7 @@ int main(void)
   MX_TIM1_Init();
   MX_ADC3_Init();
   MX_TIM2_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   /*
   Enable 74AC541 - needs to be low for activation
@@ -126,6 +128,8 @@ int main(void)
 
   int32_t chipInfo = 0;
   int32_t polePairs = 0;
+
+  uint32_t Raw_ADC_temp[5];
 
   tmc4671_writeInt(0, TMC4671_CHIPINFO_ADDR, 0);
   chipInfo = tmc4671_readInt(0, TMC4671_CHIPINFO_DATA);
@@ -179,7 +183,7 @@ int main(void)
   //experimental PI settings
 
   // ===== ABN encoder test drive =====
-
+/*
   //Open loop test drive
   tmc4671_writeInt(0, TMC4671_OPENLOOP_MODE, 0x00000000);
   tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);			//open loop velocity mode
@@ -225,6 +229,8 @@ int main(void)
   // Stop
   tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0x00000000);
 
+
+  */
   //reset encoder position
   tmc4671_setActualPosition(0, 0);
   HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin, GPIO_PIN_SET);
@@ -233,6 +239,7 @@ int main(void)
   //start new testing procedure
 
   //velocity mode test drive - crude speed ramp - TO BE TESTED
+  /*
   tmc4671_setTorqueFluxLimit_mA(0, 256, 80*141);							//8A * sqrt(2)
   tmc4671_writeInt(0, TMC4671_VELOCITY_SELECTION, 0x00000009);				//mechanical velocity selection, standard mode
   tmc4671_setTargetVelocity(0, 100);
@@ -253,18 +260,41 @@ int main(void)
   HAL_Delay(200);
   tmc4671_setTargetVelocity(0, 0);
   HAL_Delay(200);
+*/
 
   //================================================================================
   //Prototype motor init and movement STOP
   //================================================================================
 
   //info about what to input can be found in TMC4671_register.h
+
+
+
+  //================================================================================
+  //Prototype ADC temperature measurements
+  //================================================================================
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
+
+
+
   while (1)
   {
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	for(int32 i = 0; i <5; i++)
+	{
+		HAL_ADC_Start(&hadc2);
+		Raw_ADC_temp[i] = HAL_ADC_GetValue(&hadc2);
+		HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+	}
+	HAL_Delay(200);
+	HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_SET);
+	HAL_Delay(200);
+	HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_RESET);
   }
   /* USER CODE END 3 */
 }

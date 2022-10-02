@@ -38,7 +38,7 @@ typedef enum {
 	getTargetVelocity,
 	setDebugLedState,
 	getDebugLedState,
-
+	getRawADC2Measurements,
 
 } ModBus_Custom_Functions;
 

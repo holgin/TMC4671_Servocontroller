@@ -16,6 +16,8 @@
 #include "gpio.h"
 #include "tmc/ic/TMC4671/TMC4671.h"
 
+extern uint32_t Raw_ADC_temp[5];
+
 ModBus_State mb_state;
 uint8_t rx_buffer[256] = { 0 };
 uint8_t tx_buffer[256] = { 0 };
@@ -286,6 +288,11 @@ void ModBus_CustomFunction() {
 		uint8_t result;
 		result = HAL_GPIO_ReadPin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
 		frame_write_ui8(result);
+	}
+		break;
+	case getRawADC2Measurements: {
+		for (uint8_t i=0; i<5; i++)
+			frame_write_ui32(Raw_ADC_temp[i]);
 	}
 		break;
 	default:

@@ -115,6 +115,11 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 void ModBus_ParseNewFrame();
 void ModBus_CustomFunctions();
 
+
+void ModBus_Init(void)
+{
+	HAL_UARTEx_ReceiveToIdle_IT(&huart5, rx_buffer, sizeof(rx_buffer));
+}
 void ModBus_Perform(void) {
 
 	switch (mb_state) {
@@ -269,7 +274,20 @@ void ModBus_CustomFunction() {
 		frame_write_ui32(result);
 	}
 		break;
+	case setDebugLedState: {
+		uint8_t state;
 
+		frame_read_ui8(&state);
+		HAL_GPIO_WritePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin, state);
+		frame_write_ui8(0);
+	}
+	break;
+	case getDebugLedState: {
+		uint8_t result;
+		result = HAL_GPIO_ReadPin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
+		frame_write_ui8(result);
+	}
+		break;
 	default:
 		break;
 	}

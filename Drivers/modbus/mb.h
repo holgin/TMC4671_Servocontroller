@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 
+void ModBus_Init(void);
 void ModBus_Perform(void);
 
 typedef enum {
@@ -32,9 +33,11 @@ typedef enum {
 
 typedef enum {
 	readInt = 1,
-	writeInt = 2,
-	setTargetVelocity = 3,
-	getTargetVelocity = 4
+	writeInt,
+	setTargetVelocity,
+	getTargetVelocity,
+	setDebugLedState,
+	getDebugLedState,
 
 
 } ModBus_Custom_Functions;

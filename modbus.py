@@ -132,7 +132,7 @@ def getDebugLedState():
 
 if __name__ == "__main__":
     instrument = minimalmodbus.Instrument('com4', slaveaddress=1, debug=0)
-    instrument.serial.baudrate = 57600         #
+    instrument.serial.baudrate = 115200         #
     instrument.serial.bytesize = 8
     instrument.serial.parity = serial.PARITY_NONE
     instrument.serial.stopbits = 1

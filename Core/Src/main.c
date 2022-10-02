@@ -49,6 +49,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint32_t Raw_ADC_temp[5] = {0};
 
 /* USER CODE END PV */
 
@@ -102,6 +103,119 @@ int main(void) {
 	MX_TIM2_Init();
 	MX_ADC1_Init();
 	/* USER CODE BEGIN 2 */
+
+	HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, FAULT_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_SET);
+	HAL_Delay(200);
+	HAL_GPIO_WritePin(GPIOC, SOFT_START_RELAY_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, RST_TMC_Pin | EN_TMC_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, EN_TMC_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, EN_OK_Pin, GPIO_PIN_RESET); //pull low - disable the
+	//	StartupConfig();
+
+	const uint32_t chTab[5] = { ADC_CHANNEL_1, ADC_CHANNEL_2, ADC_CHANNEL_3, ADC_CHANNEL_5, ADC_CHANNEL_11 };
+	ADC_ChannelConfTypeDef sConfig = { 0 };
+	sConfig.Rank = ADC_REGULAR_RANK_1;
+	sConfig.SingleDiff = ADC_SINGLE_ENDED;
+
+
+	HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+	HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
+
+	ModBus_Init();
+
+	/* USER CODE END 2 */
+
+	/* Infinite loop */
+
+	/* USER CODE BEGIN WHILE */
+
+	uint32_t timeFor1000msTask = HAL_GetTick();
+	while (1) {
+		if (HAL_GetTick() - timeFor1000msTask >= 1000) {
+			timeFor1000msTask = HAL_GetTick();
+
+			for (uint32 i = 0; i < 5; i++) {
+				// assign channel number here
+				sConfig.Channel = chTab[i];
+				// later use array to have different sample time for each channel
+				sConfig.SamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+				if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
+					Error_Handler();
+				}
+				HAL_ADC_Start(&hadc2);
+				HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+				Raw_ADC_temp[i] = HAL_ADC_GetValue(&hadc2);
+				HAL_ADC_Stop(&hadc2);
+			}
+			HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
+		}
+		/* USER CODE END WHILE */
+
+		/* USER CODE BEGIN 3 */
+
+		ModBus_Perform();
+
+	}
+	/* USER CODE END 3 */
+}
+
+/**
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+	RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
+
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI
+			| RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV5;
+	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL10;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		Error_Handler();
+	}
+
+	/** Initializes the CPU, AHB and APB buses clocks
+	 */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+		Error_Handler();
+	}
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2
+			| RCC_PERIPHCLK_UART4 | RCC_PERIPHCLK_UART5 | RCC_PERIPHCLK_I2C1
+			| RCC_PERIPHCLK_TIM1 | RCC_PERIPHCLK_ADC12 | RCC_PERIPHCLK_ADC34;
+	PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
+	PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+	PeriphClkInit.Uart5ClockSelection = RCC_UART5CLKSOURCE_PCLK1;
+	PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
+	PeriphClkInit.Adc34ClockSelection = RCC_ADC34PLLCLK_DIV1;
+	PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+	PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLK_HCLK;
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
+		Error_Handler();
+	}
+}
+
+/* USER CODE BEGIN 4 */
+void StartupConfig() {
+
 	/*
 	 Enable 74AC541 - needs to be low for activation
 	 HAL_GPIO_WritePin(GPIOC, OK_DRV_EN_Pin|EN_OK_Pin|SOFT_START_RELAY_Pin|ENC2_SELECT_Pin|FAULT_LED_Pin, GPIO_PIN_RESET);
@@ -109,24 +223,10 @@ int main(void) {
 	 HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin|RST_TMC_Pin|EN_TMC_Pin, GPIO_PIN_RESET);
 	 HAL_GPIO_WritePin(GPIOB, STO3_out_Pin|EM_BRAKE_Pin, GPIO_PIN_RESET);
 	 */
-	HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC, FAULT_LED_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_SET);
-	HAL_Delay(2000);
-	HAL_GPIO_WritePin(GPIOC, SOFT_START_RELAY_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, RST_TMC_Pin | EN_TMC_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, EN_TMC_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC, EN_OK_Pin, GPIO_PIN_RESET); //pull low - disable the
 
-	/* USER CODE END 2 */
-
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
 
 	int32_t chipInfo = 0;
 	int32_t polePairs = 0;
-
-	uint32_t Raw_ADC_temp[5];
 
 	tmc4671_writeInt(0, TMC4671_CHIPINFO_ADDR, 0);
 	chipInfo = tmc4671_readInt(0, TMC4671_CHIPINFO_DATA);
@@ -266,99 +366,7 @@ int main(void) {
 	//================================================================================
 	//Prototype ADC temperature measurements
 	//================================================================================
-	HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-	HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
-
-	ModBus_Init();
-
-	uint32_t timeFor1000msTask = HAL_GetTick();
-
-	while (1) {
-		if (HAL_GetTick() - timeFor1000msTask >= 1000) {
-			timeFor1000msTask = HAL_GetTick();
-			uint32_t chTab[] = { ADC_CHANNEL_1, ADC_CHANNEL_2, ADC_CHANNEL_3,
-			ADC_CHANNEL_5, ADC_CHANNEL_11 };
-			for (int32 i = 0; i < 5; i++) {
-
-				ADC_ChannelConfTypeDef sConfig = { 0 };
-				sConfig.Channel = chTab[i];
-				sConfig.Rank = ADC_REGULAR_RANK_1;
-				sConfig.SingleDiff = ADC_SINGLE_ENDED;
-				sConfig.SamplingTime = ADC_SAMPLETIME_19CYCLES_5;
-				if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
-					Error_Handler();
-				}
-				HAL_ADC_Start(&hadc2);
-				HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
-				Raw_ADC_temp[i] = HAL_ADC_GetValue(&hadc2);
-				HAL_ADC_Stop(&hadc2);
-			}
-			HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
-		}
-		/* USER CODE END WHILE */
-
-		/* USER CODE BEGIN 3 */
-
-		ModBus_Perform();
-
-	}
-	/* USER CODE END 3 */
 }
-
-/**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
-
-	/** Initializes the RCC Oscillators according to the specified parameters
-	 * in the RCC_OscInitTypeDef structure.
-	 */
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI
-			| RCC_OSCILLATORTYPE_HSE;
-	RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV5;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL10;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
-
-	/** Initializes the CPU, AHB and APB buses clocks
-	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
-		Error_Handler();
-	}
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2
-			| RCC_PERIPHCLK_UART4 | RCC_PERIPHCLK_UART5 | RCC_PERIPHCLK_I2C1
-			| RCC_PERIPHCLK_TIM1 | RCC_PERIPHCLK_ADC12 | RCC_PERIPHCLK_ADC34;
-	PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-	PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
-	PeriphClkInit.Uart5ClockSelection = RCC_UART5CLKSOURCE_PCLK1;
-	PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
-	PeriphClkInit.Adc34ClockSelection = RCC_ADC34PLLCLK_DIV1;
-	PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
-	PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLK_HCLK;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
-		Error_Handler();
-	}
-}
-
-/* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**

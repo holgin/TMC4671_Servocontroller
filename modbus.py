@@ -4,27 +4,6 @@ import serial
 from struct import pack, unpack
 import logging
 import time
-# port name, slave address (in decimal)
-
-
-## Read temperature (PV = ProcessValue) ##
-# Registernumber, number of decimals
-# temperature = instrument.read_register(289, 1)
-# print(temperature)
-
-
-# temperature1 = instrument.read_registers(289, 2, 4)
-# print(temperature1)
-
-
-# ## Change temperature setpoint (SP) ##
-# NEW_TEMPERATURE = 95
-# # Registernumber, value, number of decimals for storage
-
-# instrument.write_register(24, NEW_TEMPERATURE, 1)
-# WRITEINT = 0x02
-# READINT = 0x01
-
 
 functionID = {
     "Read_Coils": 1,
@@ -150,8 +129,7 @@ if __name__ == "__main__":
 
     setDebugLedState(1)
     getDebugLedState()
-    time.sleep(1)
-
+    time.sleep(0.5)
     setDebugLedState(0)
     getDebugLedState()
 

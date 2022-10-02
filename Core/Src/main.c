@@ -131,10 +131,28 @@ int main(void) {
 
 	/* USER CODE BEGIN WHILE */
 
-	uint32_t timeFor1000msTask = HAL_GetTick();
+	uint32_t timeFor1000msTask = 0;
+	uint32_t timeFor100msTask = 0;
+	uint32_t timeFor10msTask = HAL_GetTick();
+
 	while (1) {
-		if (HAL_GetTick() - timeFor1000msTask >= 1000) {
-			timeFor1000msTask = HAL_GetTick();
+
+		// task 10ms
+		if (HAL_GetTick() - timeFor10msTask >= 10) {
+			timeFor10msTask = HAL_GetTick();
+			timeFor100msTask+=1;
+		}
+
+		// task 100ms
+		if (timeFor100msTask >= 10) {
+			timeFor100msTask=0;
+			timeFor1000msTask+=1;
+			HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
+
+		}
+		// task 1000ms
+		if (timeFor1000msTask >= 10) {
+			timeFor1000msTask = 0;
 
 			for (uint32 i = 0; i < 5; i++) {
 				// assign channel number here
@@ -149,7 +167,7 @@ int main(void) {
 				Raw_ADC_temp[i] = HAL_ADC_GetValue(&hadc2);
 				HAL_ADC_Stop(&hadc2);
 			}
-			HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
+			HAL_GPIO_TogglePin(FAULT_LED_GPIO_Port, FAULT_LED_Pin);
 		}
 		/* USER CODE END WHILE */
 

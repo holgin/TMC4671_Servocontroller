@@ -34,9 +34,9 @@ def tmc4671_writeInt(motor, address, value):
 
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = unpack('<b', result)
-    logging.debug("writeInt: set({}, {})".format(hex(address), hex(value)))
-    logging.debug("writeInt: get({})".format(result))
+    result = list(unpack('<b', result))
+    logging.debug("writeInt set: {}, {}".format(hex(address), hex(value)))
+    logging.debug("writeInt get: {}".format(hex(result[0])))
 
     return result
 
@@ -48,8 +48,8 @@ def tmc4671_readInt(motor, address):
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<I', result))
-    logging.debug("readInt: set({})".format(address))
-    logging.debug("readInt: get({})".format(result))
+    logging.debug("readInt set: {}".format(hex(address)))
+    logging.debug("readInt get: {} ".format(hex(result[0])))
 
     return result
 
@@ -59,7 +59,7 @@ def getChipInfo():
     TMC4671_CHIPINFO_DATA = 0x00
     tmc4671_writeInt(0x00, TMC4671_CHIPINFO_ADDR, 0x00000000)
     chipInfo = tmc4671_readInt(0x00, TMC4671_CHIPINFO_DATA)
-    logging.info("getChipInfo: get {}".format(chipInfo))
+    logging.info("getChipInfo get: {}".format(hex(chipInfo[0])))
 
 
 def tmc4671_setTargetVelocity(motor, targetVelocity):
@@ -70,7 +70,7 @@ def tmc4671_setTargetVelocity(motor, targetVelocity):
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<b', result))
     logging.info("setTargetVelocity set: {}".format(targetVelocity))
-    logging.debug("setTargetVelocity get: {}".format(result))
+    logging.debug("setTargetVelocity get: {}".format(result[0]))
 
     return result
 
@@ -82,7 +82,7 @@ def tmc4671_getTargetVelocity(motor):
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<I', result))
-    logging.info("getTargetVelocity: get {}".format(result))
+    logging.info("getTargetVelocity: get {}".format(result[0]))
 
     return result
 
@@ -94,7 +94,7 @@ def setDebugLedState(state):
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<b', result))
     logging.info("setDebugLedState set: {}".format(state))
-    logging.debug("setDebugLedState get: {}".format(result))
+    logging.debug("setDebugLedState get: {}".format(result[0]))
 
     return result
 
@@ -106,7 +106,7 @@ def getDebugLedState():
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<b', result))
-    logging.info("getDebugLedState: get {}".format(result))
+    logging.info("getDebugLedState: get {}".format(result[0]))
 
     return result
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     # logging.disable()
     getChipInfo()
-    tmc4671_setTargetVelocity(0, 1)
+    tmc4671_setTargetVelocity(0, 12)
     tmc4671_getTargetVelocity(0)
     tmc4671_setTargetVelocity(0, 2)
     tmc4671_getTargetVelocity(0)

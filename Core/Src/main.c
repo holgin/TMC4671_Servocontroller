@@ -111,7 +111,7 @@ int main(void)
   HAL_GPIO_WritePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin|RST_TMC_Pin|EN_TMC_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOB, STO3_out_Pin|EM_BRAKE_Pin, GPIO_PIN_RESET);
-  */
+
   HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOC, FAULT_LED_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_SET);
@@ -120,7 +120,7 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, RST_TMC_Pin|EN_TMC_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOA, EN_TMC_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOC, EN_OK_Pin, GPIO_PIN_RESET); //pull low - disable the
-
+  */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,7 +129,8 @@ int main(void)
   int32_t chipInfo = 0;
   int32_t polePairs = 0;
 
-  uint32_t Raw_ADC_temp[5];
+
+  uint32_t Raw_GPIOCTRL1 = 0;
 
   tmc4671_writeInt(0, TMC4671_CHIPINFO_ADDR, 0);
   chipInfo = tmc4671_readInt(0, TMC4671_CHIPINFO_DATA);
@@ -148,6 +149,7 @@ int main(void)
   //Prototype motor init and movement START
   //================================================================================
 
+  /*
   // Motor type &  PWM configuration
   tmc4671_writeInt(0, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030004); 	//4 pole pairs
   tmc4671_writeInt(0, TMC4671_PWM_POLARITIES, 0x00000000);				//low and low
@@ -179,7 +181,7 @@ int main(void)
   tmc4671_setTorqueFluxPI(0, 750, 2);
   tmc4671_setVelocityPI(0, 8000, 2000);
   tmc4671_setPositionPI(0,  80, 60);
-
+*/
   //experimental PI settings
 
   // ===== ABN encoder test drive =====
@@ -278,23 +280,30 @@ int main(void)
 
 
 
+
   while (1)
   {
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	//HAL_ADC_Start(&hadc3);
+	//HAL_ADC_PollForConversion(&hadc3, HAL_MAX_DELAY);
+	//Raw_GPIOCTRL1 = HAL_ADC_GetValue(&hadc3);
 
 	for(int32 i = 0; i <5; i++)
 	{
+		uint32_t Raw_ADC_temp[] = {ADC_CHANNEL_1, ADC_CHANNEL_2, ADC_CHANNEL_3, ADC_CHANNEL_5, ADC_CHANNEL_11};
 		HAL_ADC_Start(&hadc2);
-		Raw_ADC_temp[i] = HAL_ADC_GetValue(&hadc2);
 		HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+		Raw_ADC_temp[i] = HAL_ADC_GetValue(&hadc2);
+		HAL_ADC_Stop(&hadc2);
 	}
 	HAL_Delay(200);
 	HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_SET);
 	HAL_Delay(200);
 	HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_RESET);
+
   }
   /* USER CODE END 3 */
 }

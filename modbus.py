@@ -44,8 +44,8 @@ def tmc4671_writeInt(motor, address, value):
 
 
 def tmc4671_readInt(motor, address):
-    frame = str(pack('<BBI', CustomFunctionID["readInt"], motor,
-                     address).decode("utf8"))
+    frame = pack('<BBI', CustomFunctionID["readInt"], motor,
+                 address)
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])

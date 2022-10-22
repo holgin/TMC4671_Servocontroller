@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import binascii
 import minimalmodbus
 import serial
 from struct import pack, unpack
 import logging
 import time
+
 
 functionID = {
     "Read_Coils": 1,
@@ -23,18 +25,18 @@ CustomFunctionID = {
     "getTargetVelocity": 4,
     "setDebugLedState": 5,
     "getDebugLedState": 6,
-    "getRawADC2Measurements": 7   
+    "getRawADC2Measurements": 7
 
 }
 
 
 def tmc4671_writeInt(motor, address, value):
-    frame = str(pack(
-        '<bbbI', CustomFunctionID["writeInt"], motor, address, value).decode("utf8"))
-
+    frame = pack(
+        '<BBBI', CustomFunctionID["writeInt"], motor, address, value)
+    frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<b', result))
+    result = list(unpack('<B', result))
     logging.debug("writeInt set: {}, {}".format(hex(address), hex(value)))
     logging.debug("writeInt get: {}".format(hex(result[0])))
 
@@ -42,9 +44,9 @@ def tmc4671_writeInt(motor, address, value):
 
 
 def tmc4671_readInt(motor, address):
-    frame = str(pack('<bbI', CustomFunctionID["readInt"], motor,
-                     address).decode("utf8"))
-
+    frame = pack('<BBI', CustomFunctionID["readInt"], motor,
+                 address)
+    frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<I', result))
@@ -63,12 +65,13 @@ def getChipInfo():
 
 
 def tmc4671_setTargetVelocity(motor, targetVelocity):
-    frame = str(pack(
-        '<bbI', CustomFunctionID["setTargetVelocity"], motor, targetVelocity).decode("utf8"))
-
-    result = instrument._perform_command(functionID["customFunction"], frame)
+    frame = pack(
+        '<BBI', CustomFunctionID["setTargetVelocity"], motor, targetVelocity)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(
+        functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<b', result))
+    result = list(unpack('<B', result))
     logging.info("setTargetVelocity set: {}".format(targetVelocity))
     logging.debug("setTargetVelocity get: {}".format(result[0]))
 
@@ -76,9 +79,9 @@ def tmc4671_setTargetVelocity(motor, targetVelocity):
 
 
 def tmc4671_getTargetVelocity(motor):
-    frame = str(pack(
-        '<bI', CustomFunctionID["getTargetVelocity"], motor).decode("utf8"))
-
+    frame = pack(
+        '<BB', CustomFunctionID["getTargetVelocity"], motor)
+    frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<I', result))
@@ -86,13 +89,14 @@ def tmc4671_getTargetVelocity(motor):
 
     return result
 
-def setDebugLedState(state):
-    frame = str(pack(
-        '<bb', CustomFunctionID["setDebugLedState"], state).decode("utf8"))
 
+def setDebugLedState(state):
+    frame = pack(
+        '<BB', CustomFunctionID["setDebugLedState"], state)
+    frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<b', result))
+    result = list(unpack('<B', result))
     logging.info("setDebugLedState set: {}".format(state))
     logging.debug("setDebugLedState get: {}".format(result[0]))
 
@@ -100,30 +104,32 @@ def setDebugLedState(state):
 
 
 def getDebugLedState():
-    frame = str(pack(
-        '<b', CustomFunctionID["getDebugLedState"]).decode("utf8"))
-
+    frame = pack(
+        '<B', CustomFunctionID["getDebugLedState"])
+    frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<b', result))
+    result = list(unpack('<B', result))
     logging.info("getDebugLedState: get {}".format(result[0]))
 
     return result
 
-def getRawADC2Measurements():
-    frame = str(pack(
-        '<b', CustomFunctionID["getRawADC2Measurements"]).decode("utf8"))
 
+def getRawADC2Measurements():
+    frame = pack(
+        '<B', CustomFunctionID["getRawADC2Measurements"])
+    frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    
+
     adc = list(unpack('<IIIII', result))
     logging.info("getRawADC2Measurements: get {}".format(adc))
 
     return result
 
+
 if __name__ == "__main__":
-    instrument = minimalmodbus.Instrument('com4', slaveaddress=1, debug=0)
+    instrument = minimalmodbus.Instrument('com3', slaveaddress=1, debug=0)
     instrument.serial.baudrate = 115200         #
     instrument.serial.bytesize = 8
     instrument.serial.parity = serial.PARITY_NONE
@@ -133,9 +139,9 @@ if __name__ == "__main__":
     instrument.clear_buffers_before_each_transaction = True
 
     logging.basicConfig(level=logging.INFO)
-    # logging.disable()
+    logging.disable()
     getChipInfo()
-    tmc4671_setTargetVelocity(0, 12)
+    tmc4671_setTargetVelocity(0, 2000)
     tmc4671_getTargetVelocity(0)
     tmc4671_setTargetVelocity(0, 2)
     tmc4671_getTargetVelocity(0)
@@ -145,5 +151,3 @@ if __name__ == "__main__":
     time.sleep(0.1)
     setDebugLedState(0)
     getDebugLedState()
-
-    getRawADC2Measurements()

@@ -209,20 +209,20 @@ getChipInfo()
 
 print("Testing commands start")
 #Testing velocity commands
-tmc4671_setTargetVelocity(0, 2000)
-time.sleep(0.5)
-tmc4671_setTargetVelocity(0, 0)
+#tmc4671_setTargetVelocity(0, 2000)
+#time.sleep(0.5)
+#tmc4671_setTargetVelocity(0, 0)
 
 #Testing position commands
-tmc4671_setAbsoluteTargetPosition(0, 12500)
-time.sleep(0.4)
-tmc4671_incrementTargetPosition(0, 5000)
-time.sleep(0.4)
-tmc4671_decrementTargetPosition(0, 7000)
-time.sleep(0.4)
-tmc4671_incrementTargetPosition(0, 5000)
-time.sleep(0.4)
-tmc4671_setAbsoluteTargetPosition(0, 12500)
+#tmc4671_setAbsoluteTargetPosition(0, 12500)
+#time.sleep(0.4)
+#tmc4671_incrementTargetPosition(0, 5000)
+#time.sleep(0.4)
+#tmc4671_decrementTargetPosition(0, 7000)
+#time.sleep(0.4)
+#tmc4671_incrementTargetPosition(0, 5000)
+#time.sleep(0.4)
+#tmc4671_setAbsoluteTargetPosition(0, 12500)
 
 #Testing misc commands
 #enablePWM(0)

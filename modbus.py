@@ -19,13 +19,21 @@ functionID = {
 }
 
 CustomFunctionID = {
-    "readInt":  1,
+    "readInt": 1,
     "writeInt": 2,
-    "setTargetVelocity": 3,
-    "getTargetVelocity": 4,
-    "setDebugLedState": 5,
-    "getDebugLedState": 6,
-    "getRawADC2Measurements": 7
+    "enablePWM": 3,
+    "disablePWM": 4,
+#    "motorInitUQ_Flux": 5,
+#    "setTargetTorque": 6,
+#    "getTargetTorque": 7,
+    "setTargetVelocity": 5,
+    "getTargetVelocity": 6,
+    "setAbsoluteTargetPosition": 7,
+    "incrementTargetPosition": 8,
+    "decrementTargetPosition": 9,
+    "setDebugLedState": 10,
+#    "getDebugLedState": 14,
+#    "getRawADC2Measurements": 15
 
 }
 
@@ -63,6 +71,29 @@ def getChipInfo():
     chipInfo = tmc4671_readInt(0x00, TMC4671_CHIPINFO_DATA)
     logging.info("getChipInfo get: {}".format(hex(chipInfo[0])))
 
+def enablePWM(state):
+    frame = pack(
+        '<BB', CustomFunctionID["enablePWM"], state)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("enablePWM set: {}".format(state))
+    logging.debug("enablePWM get: {}".format(result[0]))
+
+    return result
+
+def disablePWM(state):
+    frame = pack(
+        '<BB', CustomFunctionID["disablePWM"], state)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("disablePWM set: {}".format(state))
+    logging.debug("disablePWM get: {}".format(result[0]))
+
+    return result 
 
 def tmc4671_setTargetVelocity(motor, targetVelocity):
     frame = pack(
@@ -77,6 +108,44 @@ def tmc4671_setTargetVelocity(motor, targetVelocity):
 
     return result
 
+def tmc4671_setAbsoluteTargetPosition(motor, AbsoluteTargetPosition):
+    frame = pack(
+        '<BBI', CustomFunctionID["setAbsoluteTargetPosition"], motor, AbsoluteTargetPosition)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(
+        functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("setAbsoluteTargetPosition set: {}".format(AbsoluteTargetPosition))
+    logging.debug("setAbsoluteTargetPosition get: {}".format(result[0]))
+
+    return result
+
+def tmc4671_incrementTargetPosition(motor, PositionIncrement):
+    frame = pack(
+        '<BBI', CustomFunctionID["incrementTargetPosition"], motor, PositionIncrement)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(
+        functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("incrementTargerPosition set: {}".format(PositionIncrement))
+    logging.debug("incrementTargerPosition get: {}".format(result[0]))
+
+    return result
+
+def tmc4671_decrementTargetPosition(motor, PositionDecrement):
+    frame = pack(
+        '<BBI', CustomFunctionID["decrementTargetPosition"], motor, PositionDecrement)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(
+        functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("decrementTargerPosition set: {}".format(PositionDecrement))
+    logging.debug("decrementTargerPosition get: {}".format(result[0]))
+
+    return result
 
 def tmc4671_getTargetVelocity(motor):
     frame = pack(
@@ -129,7 +198,7 @@ def getRawADC2Measurements():
 
 
 if __name__ == "__main__":
-    instrument = minimalmodbus.Instrument('com3', slaveaddress=1, debug=0)
+    instrument = minimalmodbus.Instrument('com9', slaveaddress=1, debug=0)
     instrument.serial.baudrate = 115200         #
     instrument.serial.bytesize = 8
     instrument.serial.parity = serial.PARITY_NONE
@@ -141,13 +210,30 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logging.disable()
     getChipInfo()
-    tmc4671_setTargetVelocity(0, 2000)
-    tmc4671_getTargetVelocity(0)
-    tmc4671_setTargetVelocity(0, 2)
-    tmc4671_getTargetVelocity(0)
+    #Testing velocity commands
+    #tmc4671_setTargetVelocity(0, 2000)
+    #tmc4671_setTargetVelocity(0, 2)
+    
+    #Testing position commands
+    #tmc4671_setAbsoluteTargetPosition(0, 12500)
+    #time.sleep(0.4)
+    #tmc4671_incrementTargetPosition(0, 5000)
+    #time.sleep(0.4)
+    #tmc4671_decrementTargetPosition(0, 7000)
+    #time.sleep(0.4)
+    #tmc4671_incrementTargetPosition(0, 5000)
+    #time.sleep(0.4)
+    #tmc4671_setAbsoluteTargetPosition(0, 12500)
 
-    setDebugLedState(1)
-    getDebugLedState()
-    time.sleep(0.1)
-    setDebugLedState(0)
-    getDebugLedState()
+    #Testing misc commands
+    enablePWM(0)
+    time.sleep(3)
+    disablePWM(0)
+    time.sleep(3)
+    enablePWM(0)
+    time.sleep(3)
+    #setDebugLedState(1)
+    #getDebugLedState()
+    #time.sleep(0.1)
+    #setDebugLedState(0)
+    #getDebugLedState()

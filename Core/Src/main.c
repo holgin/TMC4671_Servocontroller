@@ -248,9 +248,8 @@ void StartupConfig() {
 	tmc4671_writeInt(0, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030004); 		//4 pole pairs
 	tmc4671_writeInt(0, TMC4671_PWM_POLARITIES, 0x00000000);				//low and low
 	tmc4671_writeInt(0, TMC4671_PWM_MAXCNT, 0x00000F9F);					//3990 for 25kHz
-	tmc4671_writeInt(0, TMC4671_PWM_BBM_H_BBM_L, 0x00005000);				//255*80 for 800ns
-	tmc4671_writeInt(0, TMC4671_PWM_BBM_H_BBM_H, 0x00005000);				//255*80 for 800ns
-	tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);					//SVM disabled
+	tmc4671_writeInt(0, TMC4671_PWM_BBM_H_BBM_L, 0x00005050);				//80 for 800ns; first two digits for Low, second two for High deadtime
+	tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);					//FOC PWM Enabled with SVM disabled; 0x00000107 for SVM
 
 	// ADC configuration
 	tmc4671_writeInt(0, TMC4671_ADC_I_SELECT, 0x24000100);

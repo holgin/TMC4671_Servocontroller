@@ -255,6 +255,22 @@ void ModBus_CustomFunction() {
 		frame_write_ui8(0);
 	}
 	break;
+	case enablePWM: {
+		uint8_t motor_id;
+
+		frame_read_ui8(&motor_id);
+		tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);
+		frame_write_ui8(0);
+	}
+	break;
+	case disablePWM: {
+		uint8_t motor_id;
+
+		frame_read_ui8(&motor_id);
+		tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000000);
+		frame_write_ui8(0);
+	}
+	break;
 	case setTargetVelocity: {
 		uint8_t motor_id;
 		uint32_t write_value;
@@ -275,7 +291,42 @@ void ModBus_CustomFunction() {
 		result = tmc4671_getTargetVelocity(motor_id);
 		frame_write_ui32(result);
 	}
-		break;
+	break;
+	case setAbsoluteTargetPosition: {
+		uint8_t motor_id;
+		uint32_t write_value;
+
+		frame_read_ui8(&motor_id);
+		frame_read_ui32(&write_value);
+
+		tmc4671_setAbsoluteTargetPosition(motor_id, write_value);
+		frame_write_ui8(0);
+	}
+	break;
+	case incrementTargetPosition: {
+		uint8_t motor_id;
+		uint32_t write_value;
+
+		frame_read_ui8(&motor_id);
+		frame_read_ui32(&write_value);
+
+		tmc4671_setAbsoluteTargetPosition(motor_id, tmc4671_getTargetPosition(motor_id) + write_value);
+		//tmc4671_setRelativeTargetPosition(motor_id, write_value); // broken?
+		frame_write_ui8(0);
+	}
+	break;
+	case decrementTargetPosition: {
+		uint8_t motor_id;
+		uint32_t write_value;
+
+		frame_read_ui8(&motor_id);
+		frame_read_ui32(&write_value);
+
+		tmc4671_setAbsoluteTargetPosition(motor_id, tmc4671_getTargetPosition(motor_id) - write_value);
+		frame_write_ui8(0);
+	}
+	break;
+	/*
 	case setDebugLedState: {
 		uint8_t state;
 
@@ -295,6 +346,7 @@ void ModBus_CustomFunction() {
 			frame_write_ui32(Raw_ADC_temp[i]);
 	}
 		break;
+		*/
 	default:
 		break;
 	}

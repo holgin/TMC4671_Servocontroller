@@ -250,13 +250,13 @@ int32_t tmc4671_getActualRampVelocity(uint8_t motor)
 	return 0;
 }
 
-void tmc4671_setAbsolutTargetPosition(uint8_t motor, int32_t targetPosition)
+void tmc4671_setAbsoluteTargetPosition(uint8_t motor, int32_t targetPosition)
 {
 	tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_POSITION);
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_TARGET, targetPosition);
 }
 
-void tmc4671_setRelativeTargetPosition(uint8_t motor, int32_t relativePosition)
+void tmc4671_setRelativeTargetPosition(uint8_t motor, int32_t relativePosition) //broken??
 {
 	tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_POSITION);
 	// determine actual position and add relative position ticks

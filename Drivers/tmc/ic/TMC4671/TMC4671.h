@@ -73,7 +73,7 @@ int32_t tmc4671_getActualVelocity(uint8_t motor);
 int32_t tmc4671_getActualRampVelocity(uint8_t motor);
 
 // position mode
-void tmc4671_setAbsolutTargetPosition(uint8_t motor, int32_t targetPosition);
+void tmc4671_setAbsoluteTargetPosition(uint8_t motor, int32_t targetPosition);
 void tmc4671_setRelativeTargetPosition(uint8_t motor, int32_t relativePosition);
 int32_t tmc4671_getTargetPosition(uint8_t motor);
 void tmc4671_setActualPosition(uint8_t motor, int32_t actualPosition);

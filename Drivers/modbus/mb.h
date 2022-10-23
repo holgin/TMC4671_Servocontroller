@@ -34,11 +34,16 @@ typedef enum {
 typedef enum {
 	readInt = 1,
 	writeInt,
+	enablePWM,
+	disablePWM,
 	setTargetVelocity,
 	getTargetVelocity,
-	setDebugLedState,
-	getDebugLedState,
-	getRawADC2Measurements,
+	setAbsoluteTargetPosition,
+	incrementTargetPosition,
+	decrementTargetPosition,
+	//setDebugLedState,
+	//getDebugLedState,
+	//getRawADC2Measurements,
 
 } ModBus_Custom_Functions;
 

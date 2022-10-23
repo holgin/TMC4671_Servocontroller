@@ -326,7 +326,6 @@ void ModBus_CustomFunction() {
 		frame_write_ui8(0);
 	}
 	break;
-	/*
 	case setDebugLedState: {
 		uint8_t state;
 
@@ -346,7 +345,6 @@ void ModBus_CustomFunction() {
 			frame_write_ui32(Raw_ADC_temp[i]);
 	}
 		break;
-		*/
 	default:
 		break;
 	}

@@ -70,7 +70,9 @@ void SystemClock_Config(void);
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
-
+	void StartupConfig();
+	void ABN_encoder_test_drive();
+	void Exp_speed_ramp();
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -105,7 +107,7 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 
-	StartupConfig();
+
 
 	const uint32_t chTab[5] = { ADC_CHANNEL_1, ADC_CHANNEL_2, ADC_CHANNEL_3, ADC_CHANNEL_5, ADC_CHANNEL_11 };
 	ADC_ChannelConfTypeDef sConfig = { 0 };
@@ -117,6 +119,7 @@ int main(void) {
 	HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
 
 	ModBus_Init();
+	StartupConfig();
 
 	/* USER CODE END 2 */
 

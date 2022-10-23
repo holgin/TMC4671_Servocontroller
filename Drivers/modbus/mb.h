@@ -41,9 +41,9 @@ typedef enum {
 	setAbsoluteTargetPosition,
 	incrementTargetPosition,
 	decrementTargetPosition,
-	//setDebugLedState,
-	//getDebugLedState,
-	//getRawADC2Measurements,
+	setDebugLedState,
+	getDebugLedState,
+	getRawADC2Measurements,
 
 } ModBus_Custom_Functions;
 

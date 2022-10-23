@@ -6,6 +6,14 @@ from struct import pack, unpack
 import logging
 import time
 
+instrument = minimalmodbus.Instrument('com9', slaveaddress=1, debug=0)
+instrument.serial.baudrate = 115200         #
+instrument.serial.bytesize = 8
+instrument.serial.parity = serial.PARITY_NONE
+instrument.serial.stopbits = 1
+instrument.serial.timeout = 0.05          # seconds
+instrument.mode = minimalmodbus.MODE_RTU   # rtu or ascii mode
+instrument.clear_buffers_before_each_transaction = True
 
 functionID = {
     "Read_Coils": 1,
@@ -32,8 +40,8 @@ CustomFunctionID = {
     "incrementTargetPosition": 8,
     "decrementTargetPosition": 9,
     "setDebugLedState": 10,
-#    "getDebugLedState": 14,
-#    "getRawADC2Measurements": 15
+    "getDebugLedState": 11,
+    "getRawADC2Measurements": 12
 
 }
 
@@ -50,7 +58,6 @@ def tmc4671_writeInt(motor, address, value):
 
     return result
 
-
 def tmc4671_readInt(motor, address):
     frame = pack('<BBI', CustomFunctionID["readInt"], motor,
                  address)
@@ -62,7 +69,6 @@ def tmc4671_readInt(motor, address):
     logging.debug("readInt get: {} ".format(hex(result[0])))
 
     return result
-
 
 def getChipInfo():
     TMC4671_CHIPINFO_ADDR = 0x01
@@ -197,43 +203,37 @@ def getRawADC2Measurements():
     return result
 
 
-if __name__ == "__main__":
-    instrument = minimalmodbus.Instrument('com9', slaveaddress=1, debug=0)
-    instrument.serial.baudrate = 115200         #
-    instrument.serial.bytesize = 8
-    instrument.serial.parity = serial.PARITY_NONE
-    instrument.serial.stopbits = 1
-    instrument.serial.timeout = 0.05          # seconds
-    instrument.mode = minimalmodbus.MODE_RTU   # rtu or ascii mode
-    instrument.clear_buffers_before_each_transaction = True
+logging.basicConfig(level=logging.INFO)
+logging.disable()
+getChipInfo()
 
-    logging.basicConfig(level=logging.INFO)
-    logging.disable()
-    getChipInfo()
-    #Testing velocity commands
-    #tmc4671_setTargetVelocity(0, 2000)
-    #tmc4671_setTargetVelocity(0, 2)
-    
-    #Testing position commands
-    #tmc4671_setAbsoluteTargetPosition(0, 12500)
-    #time.sleep(0.4)
-    #tmc4671_incrementTargetPosition(0, 5000)
-    #time.sleep(0.4)
-    #tmc4671_decrementTargetPosition(0, 7000)
-    #time.sleep(0.4)
-    #tmc4671_incrementTargetPosition(0, 5000)
-    #time.sleep(0.4)
-    #tmc4671_setAbsoluteTargetPosition(0, 12500)
+print("Testing commands start")
+#Testing velocity commands
+tmc4671_setTargetVelocity(0, 2000)
+time.sleep(0.5)
+tmc4671_setTargetVelocity(0, 0)
 
-    #Testing misc commands
-    enablePWM(0)
-    time.sleep(3)
-    disablePWM(0)
-    time.sleep(3)
-    enablePWM(0)
-    time.sleep(3)
-    #setDebugLedState(1)
-    #getDebugLedState()
-    #time.sleep(0.1)
-    #setDebugLedState(0)
-    #getDebugLedState()
+#Testing position commands
+tmc4671_setAbsoluteTargetPosition(0, 12500)
+time.sleep(0.4)
+tmc4671_incrementTargetPosition(0, 5000)
+time.sleep(0.4)
+tmc4671_decrementTargetPosition(0, 7000)
+time.sleep(0.4)
+tmc4671_incrementTargetPosition(0, 5000)
+time.sleep(0.4)
+tmc4671_setAbsoluteTargetPosition(0, 12500)
+
+#Testing misc commands
+#enablePWM(0)
+#time.sleep(3)
+#disablePWM(0)
+#time.sleep(3)
+#enablePWM(0)
+#time.sleep(3)
+#setDebugLedState(1)
+#getDebugLedState()
+#time.sleep(0.1)
+#setDebugLedState(0)
+#getDebugLedState()
+print("Testing commands end")

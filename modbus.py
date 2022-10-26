@@ -6,7 +6,10 @@ from struct import pack, unpack
 import logging
 import time
 
-instrument = minimalmodbus.Instrument('com9', slaveaddress=1, debug=0)
+COMport = 9
+
+#def InitializeModbusCOM(COMport):    
+instrument = minimalmodbus.Instrument('com'+str(COMport), slaveaddress=1, debug=0)
 instrument.serial.baudrate = 115200         #
 instrument.serial.bytesize = 8
 instrument.serial.parity = serial.PARITY_NONE
@@ -14,6 +17,10 @@ instrument.serial.stopbits = 1
 instrument.serial.timeout = 0.05          # seconds
 instrument.mode = minimalmodbus.MODE_RTU   # rtu or ascii mode
 instrument.clear_buffers_before_each_transaction = True
+
+#    return
+
+#InitializeModbusCOM(9)
 
 functionID = {
     "Read_Coils": 1,
@@ -36,12 +43,15 @@ CustomFunctionID = {
 #    "getTargetTorque": 7,
     "setTargetVelocity": 5,
     "getTargetVelocity": 6,
-    "setAbsoluteTargetPosition": 7,
-    "incrementTargetPosition": 8,
-    "decrementTargetPosition": 9,
-    "setDebugLedState": 10,
-    "getDebugLedState": 11,
-    "getRawADC2Measurements": 12
+    "getActualVelocity": 7,
+    "setAbsoluteTargetPosition": 8,
+    "incrementTargetPosition": 9,
+    "decrementTargetPosition": 10,
+    "getActualPosition": 11,
+    "getActualTargetPosition": 12,
+    "setDebugLedState": 13,
+    "getDebugLedState": 14,
+    "getRawADC2Measurements": 15
 
 }
 
@@ -114,6 +124,28 @@ def tmc4671_setTargetVelocity(motor, targetVelocity):
 
     return result
 
+def tmc4671_getTargetVelocity(motor):
+    frame = pack(
+        '<BB', CustomFunctionID["getTargetVelocity"], motor)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<I', result))
+    logging.info("getTargetVelocity: get {}".format(result[0]))
+
+    return result
+
+def tmc4671_getActualVelocity(motor):
+    frame = pack(
+        '<BB', CustomFunctionID["getActualVelocity"], motor)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<I', result))
+    logging.info("getActualVelocity: get {}".format(result[0]))
+
+    return result
+
 def tmc4671_setAbsoluteTargetPosition(motor, AbsoluteTargetPosition):
     frame = pack(
         '<BBI', CustomFunctionID["setAbsoluteTargetPosition"], motor, AbsoluteTargetPosition)
@@ -153,17 +185,27 @@ def tmc4671_decrementTargetPosition(motor, PositionDecrement):
 
     return result
 
-def tmc4671_getTargetVelocity(motor):
+def tmc4671_getActualPosition(motor):
     frame = pack(
-        '<BB', CustomFunctionID["getTargetVelocity"], motor)
+        '<BB', CustomFunctionID["getActualPosition"], motor)
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
     result = list(unpack('<I', result))
-    logging.info("getTargetVelocity: get {}".format(result[0]))
+    logging.info("getActualPosition: get {}".format(result[0]))
 
     return result
 
+def tmc4671_gettmcTargetPosition(motor):
+    frame = pack(
+        '<BB', CustomFunctionID["getActualTargetPosition"], motor)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<I', result))
+    logging.info("getActualTargetPosition: get {}".format(result[0]))
+
+    return result
 
 def setDebugLedState(state):
     frame = pack(
@@ -205,7 +247,8 @@ def getRawADC2Measurements():
 
 logging.basicConfig(level=logging.INFO)
 logging.disable()
-getChipInfo()
+
+#getChipInfo()
 
 print("Testing commands start")
 #Testing velocity commands

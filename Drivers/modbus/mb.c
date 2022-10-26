@@ -292,6 +292,16 @@ void ModBus_CustomFunction() {
 		frame_write_ui32(result);
 	}
 	break;
+	case getActualVelocity: {
+		uint8_t motor_id;
+		uint32_t result;
+
+		frame_read_ui8(&motor_id);
+
+		result = tmc4671_getActualVelocity(motor_id);
+		frame_write_ui32(result);
+	}
+	break;
 	case setAbsoluteTargetPosition: {
 		uint8_t motor_id;
 		uint32_t write_value;
@@ -324,6 +334,26 @@ void ModBus_CustomFunction() {
 
 		tmc4671_setAbsoluteTargetPosition(motor_id, tmc4671_getTargetPosition(motor_id) - write_value);
 		frame_write_ui8(0);
+	}
+	break;
+	case getActualPosition: {
+		uint8_t motor_id;
+		uint32_t result;
+
+		frame_read_ui8(&motor_id);
+
+		result = tmc4671_getActualPosition(motor_id);
+		frame_write_ui32(result);
+	}
+	break;
+	case getTargetPosition: {
+		uint8_t motor_id;
+		uint32_t result;
+
+		frame_read_ui8(&motor_id);
+
+		result = tmc4671_getTargetPosition(motor_id);
+		frame_write_ui32(result);
 	}
 	break;
 	case setDebugLedState: {

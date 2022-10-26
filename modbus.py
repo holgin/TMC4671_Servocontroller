@@ -39,19 +39,20 @@ CustomFunctionID = {
     "enablePWM": 3,
     "disablePWM": 4,
 #    "motorInitUQ_Flux": 5,
-#    "setTargetTorque": 6,
-#    "getTargetTorque": 7,
-    "setTargetVelocity": 5,
-    "getTargetVelocity": 6,
-    "getActualVelocity": 7,
-    "setAbsoluteTargetPosition": 8,
-    "incrementTargetPosition": 9,
-    "decrementTargetPosition": 10,
-    "getActualPosition": 11,
-    "getActualTargetPosition": 12,
-    "setDebugLedState": 13,
-    "getDebugLedState": 14,
-    "getRawADC2Measurements": 15
+    "setTargetTorque": 5,
+    "getTargetTorque": 6,
+    "getActualTorque": 7,
+    "setTargetVelocity": 8,
+    "getTargetVelocity": 9,
+    "getActualVelocity": 10,
+    "setAbsoluteTargetPosition": 11,
+    "incrementTargetPosition": 12,
+    "decrementTargetPosition": 13,
+    "getActualPosition": 14,
+    "getActualTargetPosition": 15,
+    "setDebugLedState": 16,
+    "getDebugLedState": 17,
+    "getRawADC2Measurements": 18
 
 }
 
@@ -86,7 +87,7 @@ def getChipInfo():
     tmc4671_writeInt(0x00, TMC4671_CHIPINFO_ADDR, 0x00000000)
     chipInfo = tmc4671_readInt(0x00, TMC4671_CHIPINFO_DATA)
     logging.info("getChipInfo get: {}".format(hex(chipInfo[0])))
-
+#--------------------------------------------------------------------------------------
 def enablePWM(state):
     frame = pack(
         '<BB', CustomFunctionID["enablePWM"], state)
@@ -109,8 +110,43 @@ def disablePWM(state):
     logging.info("disablePWM set: {}".format(state))
     logging.debug("disablePWM get: {}".format(result[0]))
 
-    return result 
+    return result
+#--------------------------------------------------------------------------------------
+def tmc4671_setTargetTorque(motor, targetTorque):
+    frame = pack(
+        '<BBI', CustomFunctionID["setTargetTorque"], motor, targetTorque)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(
+        functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("setTargetTorque set: {}".format(targetTorque))
+    logging.debug("setTargetTorque get: {}".format(result[0]))
 
+    return result
+
+def tmc4671_getTargetTorque(motor):
+    frame = pack(
+        '<BB', CustomFunctionID["getTargetTorque"], motor)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<i', result))
+    logging.info("getTargetTorque: get {}".format(result[0]))
+
+    return result
+
+def tmc4671_getActualTorque(motor):
+    frame = pack(
+        '<BB', CustomFunctionID["getActualTorque"], motor)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<i', result))
+    logging.info("getActualTorque: get {}".format(result[0]))
+
+    return result
+#--------------------------------------------------------------------------------------
 def tmc4671_setTargetVelocity(motor, targetVelocity):
     frame = pack(
         '<BBI', CustomFunctionID["setTargetVelocity"], motor, targetVelocity)
@@ -130,7 +166,7 @@ def tmc4671_getTargetVelocity(motor):
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<I', result))
+    result = list(unpack('<i', result))
     logging.info("getTargetVelocity: get {}".format(result[0]))
 
     return result
@@ -141,11 +177,11 @@ def tmc4671_getActualVelocity(motor):
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<I', result))
+    result = list(unpack('<i', result))
     logging.info("getActualVelocity: get {}".format(result[0]))
 
     return result
-
+#--------------------------------------------------------------------------------------
 def tmc4671_setAbsoluteTargetPosition(motor, AbsoluteTargetPosition):
     frame = pack(
         '<BBI', CustomFunctionID["setAbsoluteTargetPosition"], motor, AbsoluteTargetPosition)
@@ -191,7 +227,7 @@ def tmc4671_getActualPosition(motor):
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<I', result))
+    result = list(unpack('<i', result))
     logging.info("getActualPosition: get {}".format(result[0]))
 
     return result
@@ -202,11 +238,11 @@ def tmc4671_gettmcTargetPosition(motor):
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<I', result))
+    result = list(unpack('<i', result))
     logging.info("getActualTargetPosition: get {}".format(result[0]))
 
     return result
-
+#--------------------------------------------------------------------------------------
 def setDebugLedState(state):
     frame = pack(
         '<BB', CustomFunctionID["setDebugLedState"], state)
@@ -239,7 +275,7 @@ def getRawADC2Measurements():
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
 
-    adc = list(unpack('<IIIII', result))
+    adc = list(unpack('<iiiii', result))
     logging.info("getRawADC2Measurements: get {}".format(adc))
 
     return result
@@ -250,7 +286,7 @@ logging.disable()
 
 #getChipInfo()
 
-print("Testing commands start")
+#print("Testing commands start")
 #Testing velocity commands
 #tmc4671_setTargetVelocity(0, 2000)
 #time.sleep(0.5)
@@ -279,4 +315,4 @@ print("Testing commands start")
 #time.sleep(0.1)
 #setDebugLedState(0)
 #getDebugLedState()
-print("Testing commands end")
+#print("Testing commands end")

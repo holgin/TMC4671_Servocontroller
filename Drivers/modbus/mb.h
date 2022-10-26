@@ -36,14 +36,20 @@ typedef enum {
 	writeInt,
 	enablePWM,
 	disablePWM,
+	setTargetTorque,
+	getTargetTorque,
+	getActualTorque,
+	//---------------------------
 	setTargetVelocity,
 	getTargetVelocity,
 	getActualVelocity,
+	//---------------------------
 	setAbsoluteTargetPosition,
 	incrementTargetPosition,
 	decrementTargetPosition,
 	getActualPosition,
 	getTargetPosition,
+	//---------------------------
 	setDebugLedState,
 	getDebugLedState,
 	getRawADC2Measurements,

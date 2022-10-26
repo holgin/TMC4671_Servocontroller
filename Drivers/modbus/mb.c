@@ -271,6 +271,37 @@ void ModBus_CustomFunction() {
 		frame_write_ui8(0);
 	}
 	break;
+	case setTargetTorque: {
+			uint8_t motor_id;
+			uint32_t write_value;
+
+			frame_read_ui8(&motor_id);
+			frame_read_ui32(&write_value);
+
+			tmc4671_setTargetTorque_mA(motor_id, 256, write_value);
+			frame_write_ui8(0);
+		}
+	break;
+	case getTargetTorque: {
+		uint8_t motor_id;
+		int32_t result;
+
+		frame_read_ui8(&motor_id);
+
+		result = tmc4671_getTargetTorque_mA(motor_id, 256);
+		frame_write_ui32(result);
+	}
+	break;
+	case getActualTorque: {
+		uint8_t motor_id;
+		uint32_t result;
+
+		frame_read_ui8(&motor_id);
+
+		result = tmc4671_getActualTorque_mA(motor_id, 256);
+		frame_write_ui32(result);
+	}
+	break;
 	case setTargetVelocity: {
 		uint8_t motor_id;
 		uint32_t write_value;

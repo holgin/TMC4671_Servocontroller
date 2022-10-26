@@ -268,11 +268,11 @@ void StartupConfig() {
 	tmc4671_writeInt(0, TMC4671_ABN_DECODER_COUNT, 0x00001CA8);
 	tmc4671_writeInt(0, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0x000003E8);
 	// Limits
-	tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_LIMITS, 12000);
+	tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_LIMITS, 12069);
 	//set PI constants
 	tmc4671_setTorqueFluxPI(0, 750, 2);
 	tmc4671_setVelocityPI(0, 8000, 2000);
-	tmc4671_setPositionPI(0, 80, 60);
+	tmc4671_setPositionPI(0, 80, 4);
 
 	//reset encoder position
 	//tmc4671_setActualPosition(0, 0);

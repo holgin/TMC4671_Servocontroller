@@ -21,13 +21,13 @@ serial_ports_list = serial_ports()
 events=[]
 
 window = tk.Tk()
-#COMframe = tk.Tk()
 window.title('TMC4671 servocontroller GUI')
-window.geometry('512x600')
+window.geometry('550x600')
+window.resizable(False, False)
 
 #"global" variables for periodic update
 tmcTargetVelocityReadout = tk.StringVar()
-mbVelocityTarget = tk.StringVar()
+mbTargetVelocity = tk.StringVar()
 ActualVelocityReadout = tk.StringVar()
 
 tmcTargetPositionReadout = tk.StringVar()
@@ -35,6 +35,9 @@ ActualPositionReadout = tk.StringVar()
 TargetPositionReadout = tk.StringVar()
 deltaTargetPosition = tk.StringVar()
 
+tmcTargetTorqueReadout = tk.StringVar()
+mbTargetTorque = tk.StringVar()
+ActualTorqueReadout = tk.StringVar()
 
 
 #Create the emergency button
@@ -56,15 +59,15 @@ ConfigAndConnectFrame = ttk.Frame(notebook, width=500, height=600)
 ConfigAndConnectFrame.pack(fill='both', expand=True)
 notebook.add(ConfigAndConnectFrame, text='Config and Connect')
 #second frame - Velocity mode
-VelocityModeFrame = ttk.Frame(notebook, width=500, height=600)
+VelocityModeFrame = ttk.Frame(notebook, width=501, height=600)
 VelocityModeFrame.pack(fill='both', expand=True)
 notebook.add(VelocityModeFrame, text='Velocity mode')
 #third frame - Torque mode
-TorqueModeFrame = ttk.Frame(notebook, width=1000, height=600)
+TorqueModeFrame = ttk.Frame(notebook, width=501, height=600)
 TorqueModeFrame.pack(fill='both', expand=True)
 notebook.add(TorqueModeFrame, text='Torque mode')
 #forth frame - Position mode
-PositionModeFrame = ttk.Frame(notebook, width=1000, height=600)
+PositionModeFrame = ttk.Frame(notebook, width=501, height=600)
 PositionModeFrame.pack(fill='both', expand=True)
 notebook.add(PositionModeFrame, text='Position mode')
 
@@ -102,7 +105,7 @@ RefreshCOMbutton = tk.Button(ConfigAndConnectFrame, text="Refresh", width=10, he
 RefreshCOMbutton.pack(anchor=tk.NW, padx=5, pady=5)
 def handle_click(event):    
     serial_ports_list = serial_ports()
-    print(serial_ports_list)
+    #print(serial_ports_list)
     COMlist['values'] = serial_ports_list #update the list
 RefreshCOMbutton.bind("<Button-1>", handle_click)
 
@@ -116,15 +119,15 @@ Velocitylabel.pack(anchor=tk.W)
 #TargetVelocity = tk.StringVar()
 #Velocity = ttk.Entry(VelocityModeFrame, textvariable = TargetVelocity)
 #Create the Entry space to enter the speed
-mbVelocityTarget = ttk.Entry(VelocityModeFrame)
-mbVelocityTarget.pack(anchor=tk.NW)
-mbVelocityTarget.insert(0,0)
+mbTargetVelocity = ttk.Entry(VelocityModeFrame)
+mbTargetVelocity.pack(anchor=tk.NW)
+mbTargetVelocity.insert(0,0)
 
 #Create the Send Velocity button
 SendVelocitybutton = tk.Button(VelocityModeFrame, text="Send Velocity", width=20, height=1)
 SendVelocitybutton.pack(anchor=tk.NW, padx=5, pady=5)
 def handle_click(event):
-    Vel = int(mbVelocityTarget.get())
+    Vel = int(mbTargetVelocity.get())
     #Velocity.delete(0, tk.END)
     #Velocity.insert(0,0)
     print("Target velocity: ", Vel)
@@ -135,7 +138,7 @@ SendVelocitybutton.bind("<Button-1>", handle_click)
 RampDownbutton = tk.Button(VelocityModeFrame, text="Ramp Down", width=20, height=1)
 RampDownbutton.pack(anchor=tk.NW, padx=5, pady=5)
 def handle_click(event):
-    Vel = int(mbVelocityTarget.get())
+    Vel = int(mbTargetVelocity.get())
     step = int(Vel/10)
     #print(step)
     for x in range(10):
@@ -143,14 +146,15 @@ def handle_click(event):
         #print(Vel-x*step)
         time.sleep(0.1)
     tmc4671_setTargetVelocity(0, 0)
-    mbVelocityTarget.delete(0, tk.END)
-    mbVelocityTarget.insert(0,0)
+    mbTargetVelocity.delete(0, tk.END)
+    mbTargetVelocity.insert(0,0)
 RampDownbutton.bind("<Button-1>", handle_click)
 
 #Display actual speed target
 tk.Label(VelocityModeFrame, text="Actual speed target: ").pack(anchor=tk.W)
 tk.Label(VelocityModeFrame, textvariable=tmcTargetVelocityReadout, bg="white", width=10).pack(anchor=tk.W)
 #Display actual speed
+
 tk.Label(VelocityModeFrame, text="Actual speed: ").pack(anchor=tk.W)
 tk.Label(VelocityModeFrame, textvariable=ActualVelocityReadout, bg="white", width=10).pack(anchor=tk.W)
 
@@ -158,7 +162,34 @@ tk.Label(VelocityModeFrame, textvariable=ActualVelocityReadout, bg="white", widt
 #-----------------------------------------------------------------
 #Torque Frame
 #-----------------------------------------------------------------
-#WIP
+   
+
+#Create the Entry space to enter the Torque
+tk.Label(TorqueModeFrame, text="Please input the desired Torque - RMS motor current - in mA:").pack(anchor=tk.W)
+mbTargetTorque = ttk.Entry(TorqueModeFrame)
+mbTargetTorque.pack(anchor=tk.NW)
+mbTargetTorque.insert(0,0)
+
+#Create the Send Target Torque button
+SendmbTargetTorque = tk.Button(TorqueModeFrame, text="Send Target Torque", width=20, height=1)
+SendmbTargetTorque.pack(anchor=tk.NW, padx=5, pady=5)
+def handle_click(event):
+    if (int(mbTargetTorque.get()) > 32768):
+        showinfo(title='Error', message="Value over the limit, please enter again")
+        mbTargetTorque.delete(0, tk.END)
+        mbTargetTorque.insert(0,0)
+    else:
+        tmc4671_setTargetTorque(0, int(mbTargetTorque.get()))
+SendmbTargetTorque.bind("<Button-1>", handle_click)
+
+#display actual Torque
+tk.Label(TorqueModeFrame, text="Current Torque [mA]: ").pack(anchor=tk.W)
+tk.Label(TorqueModeFrame, textvariable=ActualTorqueReadout, bg="white", width=10).pack(anchor=tk.W)
+
+#display TMC target Torque
+tk.Label(TorqueModeFrame, text="Target Torque [mA]: ").pack(anchor=tk.W)
+tk.Label(TorqueModeFrame, textvariable=tmcTargetTorqueReadout, bg="white", width=10).pack(anchor=tk.W)
+
 
 #-----------------------------------------------------------------
 #Position Frame
@@ -214,8 +245,12 @@ def update_readout():
     ActualVelocityReadout.set(tmc4671_getActualVelocity(0))
     ActualPositionReadout.set(tmc4671_getActualPosition(0))    
     tmcTargetPositionReadout.set(tmc4671_gettmcTargetPosition(0))
+    ActualTorqueReadout.set(tmc4671_getActualTorque(0))
+    tmcTargetTorqueReadout.set(tmc4671_getTargetTorque(0))    
     window.after(500, update_readout)
     
 update_readout()
 
 window.mainloop()
+
+

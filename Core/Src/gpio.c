@@ -52,10 +52,10 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, OK_DRV_EN_Pin|EN_OK_Pin|ENC2_SELECT_Pin|FAULT_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, OK_DRV_EN_Pin|SOFT_START_RELAY_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SOFT_START_RELAY_GPIO_Port, SOFT_START_RELAY_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOC, EN_OK_Pin|ENC2_SELECT_Pin|FAULT_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin, GPIO_PIN_RESET);
@@ -81,8 +81,15 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(OVP_INPUT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = OK_DRV_EN_Pin|EN_OK_Pin|ENC2_SELECT_Pin|FAULT_LED_Pin;
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = OK_DRV_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(OK_DRV_EN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PCPin PCPin PCPin */
+  GPIO_InitStruct.Pin = EN_OK_Pin|ENC2_SELECT_Pin|FAULT_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

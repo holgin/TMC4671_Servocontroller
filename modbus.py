@@ -51,7 +51,9 @@ CustomFunctionID = {
     "getActualTargetPosition": 15,
     "setDebugLedState": 16,
     "getDebugLedState": 17,
-    "getRawADC2Measurements": 18
+    "getRawADC2Measurements": 18,
+    "getTemperatures": 19,
+    "performEncoderInitUD": 20
 
 }
 
@@ -279,6 +281,30 @@ def getRawADC2Measurements():
 
     return result
 
+def getTemperatures():
+    frame = pack(
+        '<B', CustomFunctionID["getTemperatures"])
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+
+    adc = list(unpack('<iiiii', result))
+    logging.info("getTemperatures: get {}".format(adc))
+
+    return result
+
+def tmc4671_performEncoderInitUD(motor, UD_EXT):
+    frame = pack(
+        '<BBI', CustomFunctionID["performEncoderInitUD"], motor, UD_EXT)
+    frame = "".join(map(chr, frame))
+    result = instrument._perform_command(
+        functionID["customFunction"], frame)
+    result = bytes([ord(c) for c in result[1:]])
+    result = list(unpack('<B', result))
+    logging.info("performEncoderInitUD set: {}".format(UD_EXT))
+    logging.debug("performEncoderInitUD get: {}".format(result[0]))
+
+    return result
 
 logging.basicConfig(level=logging.INFO)
 logging.disable()

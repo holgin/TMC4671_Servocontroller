@@ -406,6 +406,22 @@ void ModBus_CustomFunction() {
 			frame_write_ui32(Raw_ADC_temp[i]);
 	}
 		break;
+	case getTemperatures: {
+		for (uint8_t i=0; i<5; i++)
+			frame_write_ui32(Raw_ADC_temp[i]);
+	}
+		break;
+	case performEncoderInitUD: {
+		uint8_t motor_id;
+		uint32_t write_value;
+
+		frame_read_ui8(&motor_id);
+		frame_read_ui32(&write_value);
+
+		tmc4671_doEncoderInitializationMode0(motor_id, 0, 1000, 1000, write_value, 0, 0, 0);
+		frame_write_ui8(0);
+	}
+		break;
 	default:
 		break;
 	}

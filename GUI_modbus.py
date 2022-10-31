@@ -47,19 +47,21 @@ STOPbutton = tk.Button(text="DISABLE PWM", width=25, height=5, bg="RED", fg="BLA
 STOPbutton.pack(fill=tk.X, padx=10, pady=5)
 
 def handle_click(event):    
-    print("PWM disabled!")
+    #print("PWM disabled!")
     disablePWM(0)
 
 STOPbutton.bind("<Button-1>", handle_click)
 
 #demo notebook
 notebook=ttk.Notebook(window)
-notebook.pack(pady=10, expand=True)
+notebook.pack(fill='both', pady=10, expand=True)
 
-#First frame - config and connect
-ConfigAndConnectFrame = ttk.Frame(notebook, width=500, height=600)
-ConfigAndConnectFrame.pack(fill='both', expand=True)
-notebook.add(ConfigAndConnectFrame, text='Config and Connect')
+#(fill='both', expand=True)
+
+#First frame - Init and Status
+InitAndStatusFrame = ttk.Frame(notebook, width=500, height=600)
+InitAndStatusFrame.pack(fill='both', expand=True)
+notebook.add(InitAndStatusFrame, text='Init and Status')
 #second frame - Velocity mode
 VelocityModeFrame = ttk.Frame(notebook, width=501, height=600)
 VelocityModeFrame.pack(fill='both', expand=True)
@@ -71,71 +73,84 @@ notebook.add(TorqueModeFrame, text='Torque mode')
 #forth frame - Position mode
 PositionModeFrame = ttk.Frame(notebook, width=501, height=600)
 PositionModeFrame.pack(fill='both', expand=True)
-PositionModeFrame.columnconfigure(0, weight=1)
-PositionModeFrame.columnconfigure(1, weight=1)
-PositionModeFrame.columnconfigure(2, weight=1)
 notebook.add(PositionModeFrame, text='Position mode')
 
 
 #-----------------------------------------------------------------
 #Create a description (text) for COM port setup
-COMlabel = tk.Label(ConfigAndConnectFrame, text="Please select a COM port used for MODBUS communication:")
-COMlabel.pack(anchor=tk.W)
+#--------------ROW 0
+tk.Label(InitAndStatusFrame, text="Please select a COM port used for MODBUS communication:").grid(row=0, column=0, columnspan=4, sticky="W", padx=2, pady=2)
+#--------------ROW 1
 
 # create a combobox - a Widget
 selected_COM = tk.StringVar()
-COMlist = ttk.Combobox(ConfigAndConnectFrame, textvariable=selected_COM)
+COMlist = ttk.Combobox(InitAndStatusFrame, textvariable=selected_COM)
 COMlist['values'] = serial_ports_list
 COMlist['state'] = 'readonly'
-COMlist.pack(anchor=tk.NW, padx=5, pady=5)
-
+COMlist.grid(row=1, column=1, padx=2, pady=2)
 
 #Create the connect button
-Connectbutton = tk.Button(ConfigAndConnectFrame, text="Connect", width=10, height=1)
-Connectbutton.pack(anchor=tk.NW, padx=5, pady=5)
+Connectbutton = tk.Button(InitAndStatusFrame, text="Connect", width=20, height=1)
+Connectbutton.grid(row=1, column=0, padx=2, pady=2)
 def handle_click(event):    
     print("Modbus connected")
-    #instrument = InitializeModbusCOM("COM11")
-    
+    #instrument = InitializeModbusCOM("COM11")    
 Connectbutton.bind("<Button-1>", handle_click)
 
 #Create the refresh button
-RefreshCOMbutton = tk.Button(ConfigAndConnectFrame, text="Refresh", width=10, height=1)
-RefreshCOMbutton.pack(anchor=tk.NW, padx=5, pady=5)
+RefreshCOMbutton = tk.Button(InitAndStatusFrame, text="Refresh", width=20, height=1)
+RefreshCOMbutton.grid(row=1, column=2, padx=2, pady=2)
 def handle_click(event):    
     serial_ports_list = serial_ports()
     #print(serial_ports_list)
     COMlist['values'] = serial_ports_list #update the list
 RefreshCOMbutton.bind("<Button-1>", handle_click)
 
+#--------------ROW 2 - 4
+tk.Label(InitAndStatusFrame, text="Enter desired UD_EXT value and perform the initialisation.").grid(row=2, columnspan=3, sticky="W")
+tk.Label(InitAndStatusFrame, text="Please remember that the motor should not be loaded and phase currents should be observed.").grid(row=3, columnspan=3, sticky="W")
+tk.Label(InitAndStatusFrame, text="For high voltage motors, value of 500-1000 is recommended, for low voltage above 2000 up to 5000.").grid(row=4, columnspan=3, sticky="W")
+
+#--------------ROW 5
+#Create the Entry space to enter the Encoder Init UQ value
+targetUD_EXT = tk.StringVar()
+targetUD_EXT = ttk.Entry(InitAndStatusFrame)
+targetUD_EXT.grid(row=5,column=1)
+targetUD_EXT.insert(0,0)
+
+InitEncoderUD = tk.Button(InitAndStatusFrame, text="Initialize Motor", width=20, height=1)
+InitEncoderUD.grid(row=5, column=0, padx=2, pady=2)
+def handle_click(event):
+    #print("Starting initialization!")
+    tmc4671_performEncoderInitUD(0, int(targetUD_EXT.get()))
+InitEncoderUD.bind("<Button-1>", handle_click)
+
 #-----------------------------------------------------------------
 #Velocity Frame
 #-----------------------------------------------------------------
+#--------------ROW 0
+tk.Label(VelocityModeFrame, text="Please input the desired speed in RPM:").grid(row=0, column=0, columnspan=4, sticky="W", padx=2, pady=2)
 
-Velocitylabel = tk.Label(VelocityModeFrame, text="Please input the desired speed in RPM:")
-Velocitylabel.pack(anchor=tk.W)
-
-#TargetVelocity = tk.StringVar()
-#Velocity = ttk.Entry(VelocityModeFrame, textvariable = TargetVelocity)
+#--------------ROW 1
 #Create the Entry space to enter the speed
 mbTargetVelocity = ttk.Entry(VelocityModeFrame)
-mbTargetVelocity.pack(anchor=tk.NW)
+mbTargetVelocity.grid(row=1,column=2)
 mbTargetVelocity.insert(0,0)
 
 #Create the Send Velocity button
 SendVelocitybutton = tk.Button(VelocityModeFrame, text="Send Velocity", width=20, height=1)
-SendVelocitybutton.pack(anchor=tk.NW, padx=5, pady=5)
+SendVelocitybutton.grid(row=1, column=0, padx=2, pady=2, columnspan=2)
 def handle_click(event):
     Vel = int(mbTargetVelocity.get())
     #Velocity.delete(0, tk.END)
     #Velocity.insert(0,0)
-    print("Target velocity: ", Vel)
+    #print("Target velocity: ", Vel)
     tmc4671_setTargetVelocity(0, Vel)
 SendVelocitybutton.bind("<Button-1>", handle_click)
 
 #Create the RampDown button
 RampDownbutton = tk.Button(VelocityModeFrame, text="Ramp Down", width=20, height=1)
-RampDownbutton.pack(anchor=tk.NW, padx=5, pady=5)
+RampDownbutton.grid(row=1, column=3, padx=2, pady=2, columnspan=2)
 def handle_click(event):
     Vel = int(mbTargetVelocity.get())
     step = int(Vel/10)
@@ -149,29 +164,32 @@ def handle_click(event):
     mbTargetVelocity.insert(0,0)
 RampDownbutton.bind("<Button-1>", handle_click)
 
+#--------------ROW 2
 #Display actual speed target
-tk.Label(VelocityModeFrame, text="Actual speed target: ").pack(anchor=tk.W)
-tk.Label(VelocityModeFrame, textvariable=tmcTargetVelocityReadout, bg="white", width=10).pack(anchor=tk.W)
-#Display actual speed
+tk.Label(VelocityModeFrame, text="Actual speed target: ").grid(row=2, column=0, padx=2, pady=2, columnspan=2)
+tk.Label(VelocityModeFrame, textvariable=tmcTargetVelocityReadout, bg="white", width=10).grid(row=2, column=2, padx=2, pady=2)
 
-tk.Label(VelocityModeFrame, text="Actual speed: ").pack(anchor=tk.W)
-tk.Label(VelocityModeFrame, textvariable=ActualVelocityReadout, bg="white", width=10).pack(anchor=tk.W)
+#--------------ROW 3
+#Display actual speed
+tk.Label(VelocityModeFrame, text="Actual speed: ").grid(row=3, column=0, padx=2, pady=2, columnspan=2)
+tk.Label(VelocityModeFrame, textvariable=ActualVelocityReadout, bg="white", width=10).grid(row=3, column=2, padx=2, pady=2)
 
 
 #-----------------------------------------------------------------
 #Torque Frame
 #-----------------------------------------------------------------
    
-
+#--------------ROW 0
 #Create the Entry space to enter the Torque
-tk.Label(TorqueModeFrame, text="Please input the desired Torque - RMS motor current - in mA:").pack(anchor=tk.W)
-mbTargetTorque = ttk.Entry(TorqueModeFrame)
-mbTargetTorque.pack(anchor=tk.NW)
-mbTargetTorque.insert(0,0)
+tk.Label(TorqueModeFrame, text="Please input the desired Torque - RMS motor current - in mA:").grid(row=0, column=0, columnspan=4, sticky="W", padx=2, pady=2)
 
+#--------------ROW 1
+mbTargetTorque = ttk.Entry(TorqueModeFrame)
+mbTargetTorque.grid(row=1,column=2)
+mbTargetTorque.insert(0,0)
 #Create the Send Target Torque button
 SendmbTargetTorque = tk.Button(TorqueModeFrame, text="Send Target Torque", width=20, height=1)
-SendmbTargetTorque.pack(anchor=tk.NW, padx=5, pady=5)
+SendmbTargetTorque.grid(row=1, column=0, padx=2, pady=2, columnspan=2)
 def handle_click(event):
     if (int(mbTargetTorque.get()) > 32768):
         showinfo(title='Error', message="Value over the limit, please enter again")
@@ -181,13 +199,15 @@ def handle_click(event):
         tmc4671_setTargetTorque(0, int(mbTargetTorque.get()))
 SendmbTargetTorque.bind("<Button-1>", handle_click)
 
+#--------------ROW 2
 #display actual Torque
-tk.Label(TorqueModeFrame, text="Current Torque [mA]: ").pack(anchor=tk.W)
-tk.Label(TorqueModeFrame, textvariable=ActualTorqueReadout, bg="white", width=10).pack(anchor=tk.W)
+tk.Label(TorqueModeFrame, text="Current Torque [mA]: ").grid(row=2, column=0, padx=2, pady=2, columnspan=2)
+tk.Label(TorqueModeFrame, textvariable=ActualTorqueReadout, bg="white", width=10).grid(row=2, column=2, padx=2, pady=2)
 
+#--------------ROW 3
 #display TMC target Torque
-tk.Label(TorqueModeFrame, text="Target Torque [mA]: ").pack(anchor=tk.W)
-tk.Label(TorqueModeFrame, textvariable=tmcTargetTorqueReadout, bg="white", width=10).pack(anchor=tk.W)
+tk.Label(TorqueModeFrame, text="Target Torque [mA]: ").grid(row=3, column=0, padx=2, pady=2, columnspan=2)
+tk.Label(TorqueModeFrame, textvariable=tmcTargetTorqueReadout, bg="white", width=10).grid(row=3, column=2, padx=2, pady=2)
 
 
 #-----------------------------------------------------------------
@@ -196,19 +216,17 @@ tk.Label(TorqueModeFrame, textvariable=tmcTargetTorqueReadout, bg="white", width
 
 
 #Create the Entry space to enter the target absolute position
-#tk.Label(PositionModeFrame, text="Please input the desired Absolute position:").pack(anchor=tk.W)
+#--------------ROW 0
 tk.Label(PositionModeFrame, text="Please input the desired Absolute position:").grid(row=0, column=0, columnspan=3, sticky="W", padx=2, pady=2)
 
 #--------------ROW 1
-mbPositionTarget = ttk.Entry(PositionModeFrame)
-#mbPositionTarget.pack(anchor=tk.NW)
-mbPositionTarget.grid(row=1,column=1)
+mbPositionTarget = ttk.Entry(PositionModeFrame, width=20)
+mbPositionTarget.grid(row=1,column=2)
 mbPositionTarget.insert(0,0)
 
 #Create the Send Target Position button
 SendmbPositionTarget = tk.Button(PositionModeFrame, text="Set Target Position:", width=20, height=1)
-#SendmbPositionTarget.pack(anchor=tk.NW, padx=5, pady=5)
-SendmbPositionTarget.grid(row=1, column=0, padx=2, pady=2)
+SendmbPositionTarget.grid(row=1, column=0, padx=2, pady=2, columnspan=2)
 def handle_click(event):
     tmc4671_setAbsoluteTargetPosition(0, int(mbPositionTarget.get()))
 SendmbPositionTarget.bind("<Button-1>", handle_click)
@@ -216,39 +234,31 @@ SendmbPositionTarget.bind("<Button-1>", handle_click)
 
 #--------------ROW 2
 #display actual position
-#tk.Label(PositionModeFrame, text="Current Position: ").pack(anchor=tk.W)
-#tk.Label(PositionModeFrame, textvariable=ActualPositionReadout, bg="white", width=10).pack(anchor=tk.W)
-tk.Label(PositionModeFrame, text="Current Position: ").grid(row=2, column=0, padx=2, pady=2)
-tk.Label(PositionModeFrame, textvariable=ActualPositionReadout, bg="white", width=20).grid(row=2, column=1, padx=2, pady=2)
+tk.Label(PositionModeFrame, text="Current Position: ").grid(row=2, column=0, padx=2, pady=2, columnspan=2)
+tk.Label(PositionModeFrame, textvariable=ActualPositionReadout, bg="white", width=20).grid(row=2, column=2, padx=2, pady=2)
 
 #--------------ROW 3
 #display TMC target position
-#tk.Label(PositionModeFrame, text="Target Position: ").pack(anchor=tk.W)
-#tk.Label(PositionModeFrame, textvariable=tmcTargetPositionReadout, bg="white", width=10).pack(anchor=tk.W)
-tk.Label(PositionModeFrame, text="Target Position: ").grid(row=3, column=0, padx=2, pady=2)
-tk.Label(PositionModeFrame, textvariable=tmcTargetPositionReadout, bg="white", width=20).grid(row=3, column=1, padx=2, pady=2)
+tk.Label(PositionModeFrame, text="Target Position: ").grid(row=3, column=0, padx=2, pady=2, columnspan=2)
+tk.Label(PositionModeFrame, textvariable=tmcTargetPositionReadout, bg="white", width=20).grid(row=3, column=2, padx=2, pady=2)
 
 #--------------ROW 4
 #Create buttons and Entry for relative position control (Jog)
-#tk.Label(PositionModeFrame, text="Relative position control:").pack(anchor=tk.W)
 tk.Label(PositionModeFrame, text="Relative position control:").grid(row=4, column=0, columnspan=3, sticky="W", padx=2, pady=2)
 
 #--------------ROW 5
 deltaTargetPosition = ttk.Entry(PositionModeFrame)
-#deltaTargetPosition.pack(anchor=tk.NW)
-deltaTargetPosition.grid(row=5, column=1, padx=2, pady=2)
+deltaTargetPosition.grid(row=5, column=2, padx=2, pady=2)
 deltaTargetPosition.insert(0,0)
 
-SendmbPositionTarget = tk.Button(PositionModeFrame, text="+", width=3, height=3)
-#SendmbPositionTarget.pack(anchor=tk.NW)
-SendmbPositionTarget.grid(row=5, column=2, padx=2, pady=2)
+SendmbPositionTarget = tk.Button(PositionModeFrame, text="->>", width=6, height=3)
+SendmbPositionTarget.grid(row=5, column=1, padx=2, pady=2, sticky="W")
 def handle_click(event):
     tmc4671_incrementTargetPosition(0, int(deltaTargetPosition.get()))
 SendmbPositionTarget.bind("<Button-1>", handle_click)
 
-SendmbPositionTarget = tk.Button(PositionModeFrame, text="-", width=3, height=3)
-#SendmbPositionTarget.pack(anchor=tk.NW)
-SendmbPositionTarget.grid(row=5, column=0, padx=2, pady=2)
+SendmbPositionTarget = tk.Button(PositionModeFrame, text="<<-", width=6, height=3)
+SendmbPositionTarget.grid(row=5, column=0, padx=2, pady=2, sticky="E")
 def handle_click(event):
     tmc4671_decrementTargetPosition(0, int(deltaTargetPosition.get()))
 SendmbPositionTarget.bind("<Button-1>", handle_click)

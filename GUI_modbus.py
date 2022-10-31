@@ -18,6 +18,8 @@ from COMport_list import*
 serial_ports_list = serial_ports()
 #print(serial_ports_list)
 
+COM_initialized = True
+
 events=[]
 
 window = tk.Tk()
@@ -69,15 +71,15 @@ notebook.add(TorqueModeFrame, text='Torque mode')
 #forth frame - Position mode
 PositionModeFrame = ttk.Frame(notebook, width=501, height=600)
 PositionModeFrame.pack(fill='both', expand=True)
+PositionModeFrame.columnconfigure(0, weight=1)
+PositionModeFrame.columnconfigure(1, weight=1)
+PositionModeFrame.columnconfigure(2, weight=1)
 notebook.add(PositionModeFrame, text='Position mode')
 
 
 #-----------------------------------------------------------------
 #Create a description (text) for COM port setup
-COMlabel = tk.Label(ConfigAndConnectFrame, text="Please select a COM port used for MODBUS communication:",
-    #width=100
-    #height=10
-    )
+COMlabel = tk.Label(ConfigAndConnectFrame, text="Please select a COM port used for MODBUS communication:")
 COMlabel.pack(anchor=tk.W)
 
 # create a combobox - a Widget
@@ -87,17 +89,14 @@ COMlist['values'] = serial_ports_list
 COMlist['state'] = 'readonly'
 COMlist.pack(anchor=tk.NW, padx=5, pady=5)
 
-def COM_changed(event):
-    """ handle the COM port changed event """
-    showinfo(title='Result', message=f'You selected {selected_COM.get()}!')
-COMlist.bind('<<ComboboxSelected>>', COM_changed)
 
 #Create the connect button
 Connectbutton = tk.Button(ConfigAndConnectFrame, text="Connect", width=10, height=1)
 Connectbutton.pack(anchor=tk.NW, padx=5, pady=5)
 def handle_click(event):    
     print("Modbus connected")
-    #to be defined
+    #instrument = InitializeModbusCOM("COM11")
+    
 Connectbutton.bind("<Button-1>", handle_click)
 
 #Create the refresh button
@@ -194,43 +193,62 @@ tk.Label(TorqueModeFrame, textvariable=tmcTargetTorqueReadout, bg="white", width
 #-----------------------------------------------------------------
 #Position Frame
 #-----------------------------------------------------------------
-#Create the Entry space to enter the position
 
-tk.Label(PositionModeFrame, text="Please input the desired Absolute position:").pack(anchor=tk.W)
+
+#Create the Entry space to enter the target absolute position
+#tk.Label(PositionModeFrame, text="Please input the desired Absolute position:").pack(anchor=tk.W)
+tk.Label(PositionModeFrame, text="Please input the desired Absolute position:").grid(row=0, column=0, columnspan=3, sticky="W", padx=2, pady=2)
+
+#--------------ROW 1
 mbPositionTarget = ttk.Entry(PositionModeFrame)
-mbPositionTarget.pack(anchor=tk.NW)
+#mbPositionTarget.pack(anchor=tk.NW)
+mbPositionTarget.grid(row=1,column=1)
 mbPositionTarget.insert(0,0)
 
 #Create the Send Target Position button
-SendmbPositionTarget = tk.Button(PositionModeFrame, text="Send Target Position", width=20, height=1)
-SendmbPositionTarget.pack(anchor=tk.NW, padx=5, pady=5)
+SendmbPositionTarget = tk.Button(PositionModeFrame, text="Set Target Position:", width=20, height=1)
+#SendmbPositionTarget.pack(anchor=tk.NW, padx=5, pady=5)
+SendmbPositionTarget.grid(row=1, column=0, padx=2, pady=2)
 def handle_click(event):
     tmc4671_setAbsoluteTargetPosition(0, int(mbPositionTarget.get()))
 SendmbPositionTarget.bind("<Button-1>", handle_click)
 
+
+#--------------ROW 2
 #display actual position
-tk.Label(PositionModeFrame, text="Current Position: ").pack(anchor=tk.W)
-tk.Label(PositionModeFrame, textvariable=ActualPositionReadout, bg="white", width=10).pack(anchor=tk.W)
+#tk.Label(PositionModeFrame, text="Current Position: ").pack(anchor=tk.W)
+#tk.Label(PositionModeFrame, textvariable=ActualPositionReadout, bg="white", width=10).pack(anchor=tk.W)
+tk.Label(PositionModeFrame, text="Current Position: ").grid(row=2, column=0, padx=2, pady=2)
+tk.Label(PositionModeFrame, textvariable=ActualPositionReadout, bg="white", width=20).grid(row=2, column=1, padx=2, pady=2)
 
+#--------------ROW 3
 #display TMC target position
-tk.Label(PositionModeFrame, text="Target Position: ").pack(anchor=tk.W)
-tk.Label(PositionModeFrame, textvariable=tmcTargetPositionReadout, bg="white", width=10).pack(anchor=tk.W)
+#tk.Label(PositionModeFrame, text="Target Position: ").pack(anchor=tk.W)
+#tk.Label(PositionModeFrame, textvariable=tmcTargetPositionReadout, bg="white", width=10).pack(anchor=tk.W)
+tk.Label(PositionModeFrame, text="Target Position: ").grid(row=3, column=0, padx=2, pady=2)
+tk.Label(PositionModeFrame, textvariable=tmcTargetPositionReadout, bg="white", width=20).grid(row=3, column=1, padx=2, pady=2)
 
+#--------------ROW 4
 #Create buttons and Entry for relative position control (Jog)
-tk.Label(PositionModeFrame, text="Relative position control:").pack(anchor=tk.W)
+#tk.Label(PositionModeFrame, text="Relative position control:").pack(anchor=tk.W)
+tk.Label(PositionModeFrame, text="Relative position control:").grid(row=4, column=0, columnspan=3, sticky="W", padx=2, pady=2)
 
+#--------------ROW 5
 deltaTargetPosition = ttk.Entry(PositionModeFrame)
-deltaTargetPosition.pack(anchor=tk.NW)
+#deltaTargetPosition.pack(anchor=tk.NW)
+deltaTargetPosition.grid(row=5, column=1, padx=2, pady=2)
 deltaTargetPosition.insert(0,0)
 
 SendmbPositionTarget = tk.Button(PositionModeFrame, text="+", width=3, height=3)
-SendmbPositionTarget.pack(anchor=tk.NW)
+#SendmbPositionTarget.pack(anchor=tk.NW)
+SendmbPositionTarget.grid(row=5, column=2, padx=2, pady=2)
 def handle_click(event):
     tmc4671_incrementTargetPosition(0, int(deltaTargetPosition.get()))
 SendmbPositionTarget.bind("<Button-1>", handle_click)
 
 SendmbPositionTarget = tk.Button(PositionModeFrame, text="-", width=3, height=3)
-SendmbPositionTarget.pack(anchor=tk.NW)
+#SendmbPositionTarget.pack(anchor=tk.NW)
+SendmbPositionTarget.grid(row=5, column=0, padx=2, pady=2)
 def handle_click(event):
     tmc4671_decrementTargetPosition(0, int(deltaTargetPosition.get()))
 SendmbPositionTarget.bind("<Button-1>", handle_click)
@@ -241,15 +259,17 @@ SendmbPositionTarget.bind("<Button-1>", handle_click)
 #-----------------------------------------------------------------
 #global periodic update of data
 def update_readout():
-    tmcTargetVelocityReadout.set(tmc4671_getTargetVelocity(0)) #read Servocontroler's target speed, it may be different from GUI
-    ActualVelocityReadout.set(tmc4671_getActualVelocity(0))
-    ActualPositionReadout.set(tmc4671_getActualPosition(0))    
-    tmcTargetPositionReadout.set(tmc4671_gettmcTargetPosition(0))
-    ActualTorqueReadout.set(tmc4671_getActualTorque(0))
-    tmcTargetTorqueReadout.set(tmc4671_getTargetTorque(0))    
-    window.after(500, update_readout)
-    
-update_readout()
+    if (COM_initialized == True): 
+        tmcTargetVelocityReadout.set(tmc4671_getTargetVelocity(0)) #read Servocontroler's target speed, it may be different from GUI
+        ActualVelocityReadout.set(tmc4671_getActualVelocity(0))
+        ActualPositionReadout.set(tmc4671_getActualPosition(0))    
+        tmcTargetPositionReadout.set(tmc4671_gettmcTargetPosition(0))
+        ActualTorqueReadout.set(tmc4671_getActualTorque(0))
+        tmcTargetTorqueReadout.set(tmc4671_getTargetTorque(0))    
+        window.after(500, update_readout)
+
+if (COM_initialized == True):    
+    update_readout()
 
 window.mainloop()
 

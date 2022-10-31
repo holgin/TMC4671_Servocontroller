@@ -6,21 +6,20 @@ from struct import pack, unpack
 import logging
 import time
 
-COMport = 9
 
-#def InitializeModbusCOM(COMport):    
-instrument = minimalmodbus.Instrument('com'+str(COMport), slaveaddress=1, debug=0)
-instrument.serial.baudrate = 115200         #
-instrument.serial.bytesize = 8
-instrument.serial.parity = serial.PARITY_NONE
-instrument.serial.stopbits = 1
-instrument.serial.timeout = 0.05          # seconds
-instrument.mode = minimalmodbus.MODE_RTU   # rtu or ascii mode
-instrument.clear_buffers_before_each_transaction = True
+def InitializeModbusCOM(COMport):    
+    instrument = minimalmodbus.Instrument(COMport, slaveaddress=1, debug=0)
+    instrument.serial.baudrate = 115200         #
+    instrument.serial.bytesize = 8
+    instrument.serial.parity = serial.PARITY_NONE
+    instrument.serial.stopbits = 1
+    instrument.serial.timeout = 0.05          # seconds
+    instrument.mode = minimalmodbus.MODE_RTU   # rtu or ascii mode
+    instrument.clear_buffers_before_each_transaction = True
 
-#    return
+    return instrument
 
-#InitializeModbusCOM(9)
+instrument = InitializeModbusCOM("COM11")
 
 functionID = {
     "Read_Coils": 1,

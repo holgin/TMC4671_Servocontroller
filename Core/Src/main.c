@@ -57,8 +57,9 @@ uint32_t Raw_ADC_temp[5] = {0};
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void StartupConfig(void);
-void ABN_encoder_test_drive(void);
+void ABN_encoder_test_drive(uint32_t);
 void Exp_speed_ramp(void);
+void openloop_test_drive(uint32_t);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -121,6 +122,9 @@ int main(void)
 
 	ModBus_Init();
 	StartupConfig();
+	//openloop_test_drive(4800);
+	//HAL_Delay(1000);
+	//ABN_encoder_test_drive(4800);
 
   /* USER CODE END 2 */
 
@@ -244,7 +248,6 @@ void StartupConfig() {
 	HAL_GPIO_WritePin(GPIOC, EN_OK_Pin, GPIO_PIN_RESET); 						//low - Gate drivers enabled
 	HAL_GPIO_WritePin(GPIOC, OK_DRV_EN_Pin, GPIO_PIN_RESET); 					//low - 74AC541, optocoupler driver enabled
 
-	//tmc4671_SimpleABNEncoderInit(1, 8192, 1000, 1000);
 
 	//================================================================================
 	//Prototype motor init and movement START
@@ -256,7 +259,8 @@ void StartupConfig() {
 	tmc4671_writeInt(0, TMC4671_PWM_POLARITIES, 0x00000000);				//low and low
 	tmc4671_writeInt(0, TMC4671_PWM_MAXCNT, 0x00000F9F);					//3990 for 25kHz
 	tmc4671_writeInt(0, TMC4671_PWM_BBM_H_BBM_L, 0x00005050);				//80 for 800ns; first two digits for Low, second two for High deadtime
-	tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);					//FOC PWM Enabled with SVM disabled; 0x00000107 for SVM
+	tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000003);				//3 for ABN encoder
+	//tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);					//FOC PWM Enabled with SVM disabled; 0x00000107 for SVM
 
 	// ADC configuration
 	tmc4671_writeInt(0, TMC4671_ADC_I_SELECT, 0x24000100);
@@ -264,18 +268,18 @@ void StartupConfig() {
 	tmc4671_writeInt(0, TMC4671_dsADC_MCLK_A, 0x20000000);
 	tmc4671_writeInt(0, TMC4671_dsADC_MCLK_B, 0x20000000);
 	tmc4671_writeInt(0, TMC4671_dsADC_MDEC_B_MDEC_A, 0x014E014E);
-	tmc4671_writeInt(0, TMC4671_ADC_I0_SCALE_OFFSET, 0x01008001);
-	tmc4671_writeInt(0, TMC4671_ADC_I1_SCALE_OFFSET, 0x01008001);
+	tmc4671_writeInt(0, TMC4671_ADC_I0_SCALE_OFFSET, 0x0100817E);
+	tmc4671_writeInt(0, TMC4671_ADC_I1_SCALE_OFFSET, 0x0100817E);
 	// ABN encoder settings
 	tmc4671_writeInt(0, TMC4671_ABN_DECODER_MODE, 0x00000000);
 	tmc4671_writeInt(0, TMC4671_ABN_DECODER_PPR, 0x00002000);					//8192 ppr
 	tmc4671_writeInt(0, TMC4671_ABN_DECODER_COUNT, 0x00001CA8);
 	tmc4671_writeInt(0, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0x000003E8);
 	// Limits
-	tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_LIMITS, 12069);
+	tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_LIMITS, 8000);
 	//set PI constants
-	tmc4671_setTorqueFluxPI(0, 750, 2);
-	tmc4671_setVelocityPI(0, 8000, 2000);
+	tmc4671_setTorqueFluxPI(0, 700, 20);
+	tmc4671_setVelocityPI(0, 15000, 20000);
 	tmc4671_setPositionPI(0, 80, 4);
 
 	//reset encoder position
@@ -286,42 +290,56 @@ void StartupConfig() {
 	//start new testing procedure
 }
 
-void ABN_encoder_test_drive()
+void openloop_test_drive(uint32_t UQ_UD_target)
+	{
+	// Open loop settings
+	tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);
+	tmc4671_writeInt(0, TMC4671_OPENLOOP_MODE, 0x00000000);
+	tmc4671_writeInt(0, TMC4671_OPENLOOP_ACCELERATION, 0x0000003C);
+	tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x0000001E);
+	// Feedback selection
+	tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000002);
+	tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, UQ_UD_target);
+	// ===== Open loop test drive =====
+	// Switch to open loop velocity mode
+	tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);
+	// Rotate right
+	tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x0000003C);
+	HAL_Delay(1000);
+	// Rotate left
+	tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 0xFFFFFFC4);
+	HAL_Delay(2000);
+	// Stop
+	tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000);
+	HAL_Delay(1000);
+	tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 0x00000000);
+	}
+
+void ABN_encoder_test_drive(uint32_t UQ_UD_target)
 {
 	// ===== ABN encoder test drive =====
-	//Open loop test drive
-	 tmc4671_writeInt(0, TMC4671_OPENLOOP_MODE, 0x00000000);
-	 tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);			//open loop velocity mode
-	 tmc4671_writeInt(0, TMC4671_OPENLOOP_ACCELERATION, 0x0000003C); 			//60
-	 tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 40);					//rpms
-	 tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000002);					//config for open loop
-	 tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 5200);								//value for Parker servomotors
-	 HAL_Delay(3000);															//spin the motor
-	 tmc4671_writeInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET, 0);					//set 0 rpms
-	 HAL_Delay(3000);															//wait for motor to stop
-	 tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 0);									//disable open loop flux
-
 	 // Init encoder (mode 0)
+	 tmc4671_writeInt(0, TMC4671_PWM_SV_CHOP, 0x00000007);
 	 tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);			//open loop velocity mode
 	 tmc4671_writeInt(0, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0x00000000);	//reset the offset
 	 tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000001);					//phi_e_ext - open loop
 	 tmc4671_writeInt(0, TMC4671_PHI_E_EXT, 0x00000000);
-	 tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, 5200);
+	 tmc4671_writeInt(0, TMC4671_UQ_UD_EXT, UQ_UD_target);
 	 HAL_Delay(2000);
 	 HAL_GPIO_WritePin(GPIOA, TMC_OK_LED_Pin, GPIO_PIN_RESET);
 	 tmc4671_writeInt(0, TMC4671_ABN_DECODER_COUNT, 0x00000000);
 	 tmc4671_writeInt(0, TMC4671_PHI_E_SELECTION, 0x00000003);						//Feedback selection phi_e_abn - use ABN encoder for electrical phase
 	 tmc4671_writeInt(0, TMC4671_VELOCITY_SELECTION, 0x00000009);
-	 tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000001);				// Switch to torque mode
-	 tmc4671_setTargetTorque_mA(0, 256, 2000); 										//Rotate right, clarify meaning of the middle variable
-	 //tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0x03E80000);
-	 HAL_Delay(5000);
-	 HAL_GPIO_WritePin(GPIOC, FAULT_LED_Pin, GPIO_PIN_RESET);
-	 tmc4671_setTargetTorque_mA(0, 256, -2000); 									//Rotate left, clarify meaning of the middle variable
-	 //tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0xFC180000);
-	 HAL_Delay(5000);
-	 HAL_GPIO_WritePin(GPIOF, DEBUG_LED_Pin, GPIO_PIN_RESET);
-	 tmc4671_writeInt(0, TMC4671_PID_TORQUE_FLUX_TARGET, 0x00000000);				// Stop
+	 tmc4671_writeInt(0, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000002);				// Switch to velocity mode
+/*
+	 tmc4671_setTargetVelocity(0, 200);												//Rotate right
+	 HAL_Delay(2000);
+	 tmc4671_setTargetVelocity(0, 0);
+	 HAL_Delay(1000);
+	 tmc4671_setTargetVelocity(0, -200);											//Rotate left
+	 HAL_Delay(2000);
+	 tmc4671_setTargetVelocity(0, 0);												// Stop
+*/
 }
 
 void Exp_speed_ramp()

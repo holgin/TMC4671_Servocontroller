@@ -45,14 +45,18 @@ ActualTorqueReadout = tk.StringVar()
 #Create the emergency button
 STOPbutton = tk.Button(text="DISABLE PWM", width=25, height=5, bg="RED", fg="BLACK")
 STOPbutton.pack(fill=tk.X, padx=10, pady=5)
-
 def handle_click(event):    
-    #print("PWM disabled!")
     disablePWM(0)
-
 STOPbutton.bind("<Button-1>", handle_click)
 
-#demo notebook
+#Create the enable PWM button
+STARTbutton = tk.Button(text="Start PWM", width=25, height=1, bg="GREEN", fg="BLACK")
+STARTbutton.pack(fill=tk.X, padx=10, pady=5)
+def handle_click(event):    
+    enablePWM(0)
+STARTbutton.bind("<Button-1>", handle_click)
+
+#Define notebook
 notebook=ttk.Notebook(window)
 notebook.pack(fill='both', pady=10, expand=True)
 
@@ -121,7 +125,6 @@ targetUD_EXT.insert(0,0)
 InitEncoderUD = tk.Button(InitAndStatusFrame, text="Initialize Motor", width=20, height=1)
 InitEncoderUD.grid(row=5, column=0, padx=2, pady=2)
 def handle_click(event):
-    #print("Starting initialization!")
     tmc4671_performEncoderInitUD(0, int(targetUD_EXT.get()))
 InitEncoderUD.bind("<Button-1>", handle_click)
 

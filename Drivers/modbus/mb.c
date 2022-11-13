@@ -418,7 +418,8 @@ void ModBus_CustomFunction() {
 		frame_read_ui8(&motor_id);
 		frame_read_ui32(&write_value);
 
-		tmc4671_doEncoderInitializationMode0(motor_id, 0, 1000, 1000, write_value, 0, 0, 0);
+		//openloop_test_drive(write_value); //disabled temporarily
+		ABN_encoder_test_drive(write_value);
 		frame_write_ui8(0);
 	}
 		break;

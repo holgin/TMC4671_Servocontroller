@@ -19,7 +19,7 @@ def InitializeModbusCOM(COMport):
 
     return instrument
 
-instrument = InitializeModbusCOM("COM11")
+instrument = InitializeModbusCOM("COM16")
 
 functionID = {
     "Read_Coils": 1,
@@ -150,12 +150,12 @@ def tmc4671_getActualTorque(motor):
 #--------------------------------------------------------------------------------------
 def tmc4671_setTargetVelocity(motor, targetVelocity):
     frame = pack(
-        '<BBI', CustomFunctionID["setTargetVelocity"], motor, targetVelocity)
+        '<bbi', CustomFunctionID["setTargetVelocity"], motor, targetVelocity)
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(
         functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<B', result))
+    result = list(unpack('<b', result))
     logging.info("setTargetVelocity set: {}".format(targetVelocity))
     logging.debug("setTargetVelocity get: {}".format(result[0]))
 
@@ -190,7 +190,7 @@ def tmc4671_setAbsoluteTargetPosition(motor, AbsoluteTargetPosition):
     result = instrument._perform_command(
         functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-    result = list(unpack('<B', result))
+    result = list(unpack('<b', result))
     logging.info("setAbsoluteTargetPosition set: {}".format(AbsoluteTargetPosition))
     logging.debug("setAbsoluteTargetPosition get: {}".format(result[0]))
 

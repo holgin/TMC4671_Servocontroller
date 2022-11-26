@@ -17,6 +17,8 @@
 #include "tmc/ic/TMC4671/TMC4671.h"
 
 extern uint32_t Raw_ADC_temp[5];
+extern uint32_t HS1temp_raw;
+extern int32_t HS1temp;
 
 ModBus_State mb_state;
 uint8_t rx_buffer[256] = { 0 };
@@ -406,9 +408,14 @@ void ModBus_CustomFunction() {
 			frame_write_ui32(Raw_ADC_temp[i]);
 	}
 		break;
-	case getTemperatures: {
-		for (uint8_t i=0; i<5; i++)
-			frame_write_ui32(Raw_ADC_temp[i]);
+	case getHSTemp: {
+		uint8_t sensor_id;
+		uint32_t result;
+
+		frame_read_ui8(&sensor_id);
+		//result = HS1temp_raw;
+		result = HS1temp;
+		frame_write_ui32(result);
 	}
 		break;
 	case performEncoderInitUD: {

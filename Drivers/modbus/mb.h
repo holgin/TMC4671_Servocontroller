@@ -52,8 +52,8 @@ typedef enum {
 	//---------------------------
 	setDebugLedState,
 	getDebugLedState,
+	getHSTemp,
 	getRawADC2Measurements,
-	getTemperatures,
 	performEncoderInitUD,
 
 } ModBus_Custom_Functions;

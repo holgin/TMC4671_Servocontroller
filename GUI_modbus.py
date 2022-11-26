@@ -41,6 +41,8 @@ tmcTargetTorqueReadout = tk.StringVar()
 mbTargetTorque = tk.StringVar()
 ActualTorqueReadout = tk.StringVar()
 
+HSTempReadout = tk.StringVar()
+
 
 #Create the emergency button
 STOPbutton = tk.Button(text="DISABLE PWM", width=25, height=5, bg="RED", fg="BLACK")
@@ -127,6 +129,13 @@ InitEncoderUD.grid(row=5, column=0, padx=2, pady=2)
 def handle_click(event):
     tmc4671_performEncoderInitUD(0, int(targetUD_EXT.get()))
 InitEncoderUD.bind("<Button-1>", handle_click)
+
+#--------------ROW 6
+#Display the temperature status
+tk.Label(InitAndStatusFrame, text="Temperature:").grid(row=6, column=0, sticky="W")
+tk.Label(InitAndStatusFrame, text="Actual heatsink temperature: ").grid(row=7, column=0, sticky="W")
+tk.Label(InitAndStatusFrame, textvariable=HSTempReadout, bg="white", width=10).grid(row=7, column=1)
+
 
 #-----------------------------------------------------------------
 #Velocity Frame
@@ -278,7 +287,8 @@ def update_readout():
         ActualPositionReadout.set(tmc4671_getActualPosition(0))    
         tmcTargetPositionReadout.set(tmc4671_gettmcTargetPosition(0))
         ActualTorqueReadout.set(tmc4671_getActualTorque(0))
-        tmcTargetTorqueReadout.set(tmc4671_getTargetTorque(0))    
+        tmcTargetTorqueReadout.set(tmc4671_getTargetTorque(0))
+        HSTempReadout.set(getHSTemp(0))
         window.after(500, update_readout)
 
 if (COM_initialized == True):    

@@ -51,7 +51,7 @@ CustomFunctionID = {
     "getActualTargetPosition": 15,
     "setDebugLedState": 16,
     "getDebugLedState": 17,
-    "getRawADC2Measurements": 18,
+    "getHSTemp": 18,
     "getTemperatures": 19,
     "performEncoderInitUD": 20
 
@@ -268,16 +268,14 @@ def getDebugLedState():
 
     return result
 
-
-def getRawADC2Measurements():
+def getHSTemp(sensor):
     frame = pack(
-        '<B', CustomFunctionID["getRawADC2Measurements"])
+        '<BB', CustomFunctionID["getHSTemp"], sensor)
     frame = "".join(map(chr, frame))
     result = instrument._perform_command(functionID["customFunction"], frame)
     result = bytes([ord(c) for c in result[1:]])
-
-    adc = list(unpack('<iiiii', result))
-    logging.info("getRawADC2Measurements: get {}".format(adc))
+    result = list(unpack('<i', result))
+    logging.info("getHSTemp: get {}".format(result[0]))
 
     return result
 

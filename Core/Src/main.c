@@ -25,6 +25,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "NTC_sensors.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -50,6 +51,8 @@
 
 /* USER CODE BEGIN PV */
 uint32_t Raw_ADC_temp[5] = {0};
+uint32_t HS1temp_raw = 0;
+int32_t HS1temp = 0;
 
 /* USER CODE END PV */
 
@@ -168,6 +171,12 @@ int main(void)
 				HAL_ADC_Stop(&hadc2);
 			}
 			HAL_GPIO_TogglePin(FAULT_LED_GPIO_Port, FAULT_LED_Pin);
+			HS1temp_raw = Raw_ADC_temp[1];
+			if (HS1temp_raw < 596)
+			{
+				HS1temp_raw = 596;
+			}
+			HS1temp = NTC_table_TME[(HS1temp_raw - 595)/16];
 		}
     /* USER CODE END WHILE */
 
